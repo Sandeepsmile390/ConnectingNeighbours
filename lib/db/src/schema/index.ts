@@ -1,3 +1,3 @@
-export * from "./auth";
-export * from "./community";
-export * from "./relations";
+export * from "./auth.js";
+export * from "./community.js";
+export * from "./relations.js";
