@@ -87,7 +87,8 @@ function getSafeReturnTo(value: unknown): string {
 function isValidMobileRedirect(url: string): boolean {
   return (
     url.startsWith("neighbors-mobile://") ||
-    url.startsWith("exp+neighbors-mobile://")
+    url.startsWith("exp+neighbors-mobile://") ||
+    url.startsWith("exp://")
   );
 }
 

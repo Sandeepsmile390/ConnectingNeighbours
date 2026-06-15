@@ -16,6 +16,8 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Feather.glyphMap; route: s
   { label: "Shared Resources", icon: "heart", route: "/resources", desc: "Community sharing network" },
   { label: "Hostels & PG Rentals", icon: "home", route: "/hostels", desc: "Explore local accommodations" },
   { label: "Community Guidelines", icon: "book-open", route: "/guidelines", desc: "Read our rules and terms" },
+  { label: "AI Guide", icon: "cpu", route: "/assistant", desc: "Ask the neighborhood AI chatbot" },
+  { label: "App Feedback", icon: "smile", route: "/feedback", desc: "Submit bugs or recommendations" },
   { label: "My Profile", icon: "user", route: "/profile", desc: "Edit your neighborhood profile" },
 ];
 

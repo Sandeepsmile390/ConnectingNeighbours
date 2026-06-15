@@ -64,6 +64,14 @@ function RootLayoutNav() {
         name="guidelines"
         options={{ title: "Community Guidelines", headerBackTitle: "Back" }}
       />
+      <Stack.Screen
+        name="assistant"
+        options={{ title: "AI Assistant Guide", headerBackTitle: "Back" }}
+      />
+      <Stack.Screen
+        name="feedback"
+        options={{ title: "App Feedback", headerBackTitle: "Back" }}
+      />
     </Stack>
   );
 }
