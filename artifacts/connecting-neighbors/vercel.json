@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://connecting-neighbours-api-server.vercel.app/api/:path*"
+      "destination": "https://connecting-neighbours-apiserver.vercel.app/api/:path*"
     }
   ]
 }
