@@ -86,14 +86,14 @@ export async function deleteSession(sid: string): Promise<void> {
 }
 
 export async function clearSession(
-  res: Response,
+  res: any,
   sid?: string,
 ): Promise<void> {
   if (sid) await deleteSession(sid);
   res.clearCookie(SESSION_COOKIE, { path: "/" });
 }
 
-export function getSessionId(req: Request): string | undefined {
+export function getSessionId(req: any): string | undefined {
   const authHeader = req.headers["authorization"];
   if (authHeader?.startsWith("Bearer ")) {
     return authHeader.slice(7);
