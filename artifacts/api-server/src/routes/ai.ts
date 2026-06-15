@@ -10,11 +10,6 @@ router.post("/ai/query", async (req, res) => {
   const body = QueryAiAssistantBody.parse(req.body);
   const apiKey = process.env.GEMINI_API_KEY;
 
-  if (!apiKey) {
-    res.status(500).json({ error: "Gemini API key is not configured on the server." });
-    return;
-  }
-
   try {
     // 1. Gather active context from all community tables
     const activeListings = await db.query.listingsTable.findMany({
@@ -58,6 +53,41 @@ router.post("/ai/query", async (req, res) => {
     const membersContext = members.map(m => 
       `- ${m.name} (@${m.username}, Apartment: ${m.apartment || "N/A"}${m.isVerified ? ", Verified" : ""})`
     ).join("\n");
+
+    // 2.5 Sandbox Guide mode check if API Key is not set
+    if (!apiKey) {
+      const queryLower = body.message.toLowerCase();
+      let reply = "";
+
+      if (queryLower.includes("event") || queryLower.includes("happen") || queryLower.includes("calendar")) {
+        reply = `[Sandbox Guide Mode 🤖]\nHere are the upcoming community events registered in our neighborhood database:\n\n${
+          eventsContext || "No upcoming events scheduled at this time."
+        }\n\n*Configure your GEMINI_API_KEY environment variable to enable full conversational AI!*`;
+      } else if (queryLower.includes("listing") || queryLower.includes("buy") || queryLower.includes("sell") || queryLower.includes("market") || queryLower.includes("price") || queryLower.includes("free")) {
+        reply = `[Sandbox Guide Mode 🤖]\nHere are the active items available in the marketplace:\n\n${
+          listingsContext || "No active listings right now."
+        }\n\n*Configure your GEMINI_API_KEY environment variable to enable full conversational AI!*`;
+      } else if (queryLower.includes("alert") || queryLower.includes("safe") || queryLower.includes("danger") || queryLower.includes("warn") || queryLower.includes("emergency")) {
+        reply = `[Sandbox Guide Mode 🤖]\nHere is the current safety report for our neighborhood:\n\n${
+          alertsContext || "No active safety alerts. The neighborhood is safe!"
+        }\n\n*Configure your GEMINI_API_KEY environment variable to enable full conversational AI!*`;
+      } else if (queryLower.includes("resource") || queryLower.includes("borrow") || queryLower.includes("lend") || queryLower.includes("share") || queryLower.includes("tool")) {
+        reply = `[Sandbox Guide Mode 🤖]\nHere are the shared resources available to borrow or request:\n\n${
+          resourcesContext || "No shared resources are currently offered."
+        }\n\n*Configure your GEMINI_API_KEY environment variable to enable full conversational AI!*`;
+      } else {
+        reply = `[Sandbox Guide Mode 🤖]\nHello! I am running in Sandbox Mode because a Gemini API Key is not yet configured on this server. However, I can query the neighborhood database and summarize the local status:\n\n` +
+          `• 🛍️ **Marketplace:** ${activeListings.length} active listings.\n` +
+          `• 📅 **Events:** ${upcomingEvents.length} upcoming events.\n` +
+          `• ⚠️ **Alerts:** ${activeAlerts.length} active safety alerts.\n` +
+          `• 🤝 **Resources:** ${sharedResources.length} shared items/rides.\n` +
+          `• 👥 **Members:** ${members.length} registered neighbors.\n\n` +
+          `Try asking about specific events, marketplace listings, safety alerts, or resources, or set up your Gemini API Key!`;
+      }
+
+      res.json({ response: reply });
+      return;
+    }
 
     // 3. Construct prompt incorporating context
     const systemPrompt = `You are the friendly, helpful local AI Assistant for the 'Connecting Neighbors' hyperlocal community network. Your job is to answer questions from neighbors using only the active, real-time database context provided below.
