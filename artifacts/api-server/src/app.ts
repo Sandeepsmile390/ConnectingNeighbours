@@ -6,9 +6,9 @@ import pinoHttp from "pino-http";
 import helmet from "helmet";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
-import router from "./routes";
-import { logger } from "./lib/logger";
-import { authMiddleware } from "./middlewares/authMiddleware";
+import router from "./routes/index.js";
+import { logger } from "./lib/logger.js";
+import { authMiddleware } from "./middlewares/authMiddleware.js";
 
 const app = express();
 
