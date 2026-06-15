@@ -9,7 +9,7 @@ import alertsRouter from "./alerts";
 import resourcesRouter from "./resources";
 import feedRouter from "./feed";
 
-const router: IRouter = Router();
+const router = Router();
 
 router.use(healthRouter);
 router.use(authRouter);
