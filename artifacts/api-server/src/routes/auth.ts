@@ -1,5 +1,5 @@
 import * as oidc from "openid-client";
-import { Router, type IRouter, type Request, type Response } from "express";
+import { Router } from "express";
 import { z } from "zod";
 import { db, usersTable } from "@workspace/db";
 import {
@@ -44,7 +44,7 @@ const OIDC_COOKIE_TTL = 10 * 60 * 1000;
 
 const router = Router();
 
-function getOrigin(req: Request): string {
+function getOrigin(req: any): string {
   if (process.env.REPLIT_DOMAINS) {
     const domain = process.env.REPLIT_DOMAINS.split(",")[0].trim();
     return `https://${domain}`;
@@ -57,7 +57,7 @@ function getOrigin(req: Request): string {
   return `${proto}://${host}`;
 }
 
-function setSessionCookie(res: Response, sid: string) {
+function setSessionCookie(res: any, sid: string) {
   res.cookie(SESSION_COOKIE, sid, {
     httpOnly: true,
     secure: true,
@@ -67,7 +67,7 @@ function setSessionCookie(res: Response, sid: string) {
   });
 }
 
-function setOidcCookie(res: Response, name: string, value: string) {
+function setOidcCookie(res: any, name: string, value: string) {
   res.cookie(name, value, {
     httpOnly: true,
     secure: true,
@@ -116,7 +116,7 @@ async function upsertUser(claims: Record<string, unknown>) {
   return user;
 }
 
-router.get("/auth/user", (req: Request, res: Response) => {
+router.get("/auth/user", (req: any, res: any) => {
   res.json(
     GetCurrentAuthUserResponse.parse({
       user: req.isAuthenticated() ? req.user : null,
@@ -124,7 +124,7 @@ router.get("/auth/user", (req: Request, res: Response) => {
   );
 });
 
-router.get("/login", async (req: Request, res: Response) => {
+router.get("/login", async (req: any, res: any) => {
   const config = await getOidcConfig();
   const callbackUrl = `${getOrigin(req)}/api/callback`;
 
@@ -160,7 +160,7 @@ router.get("/login", async (req: Request, res: Response) => {
   res.redirect(redirectTo.href);
 });
 
-router.get("/callback", async (req: Request, res: Response) => {
+router.get("/callback", async (req: any, res: any) => {
   const config = await getOidcConfig();
   const callbackUrl = `${getOrigin(req)}/api/callback`;
 
@@ -237,7 +237,7 @@ router.get("/callback", async (req: Request, res: Response) => {
   res.redirect(returnTo);
 });
 
-router.get("/logout", async (req: Request, res: Response) => {
+router.get("/logout", async (req: any, res: any) => {
   const origin = getOrigin(req);
 
   const sid = getSessionId(req);
@@ -248,7 +248,7 @@ router.get("/logout", async (req: Request, res: Response) => {
 
 router.post(
   "/mobile-auth/token-exchange",
-  async (req: Request, res: Response) => {
+  async (req: any, res: any) => {
     const parsed = ExchangeMobileAuthorizationCodeBody.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: "Missing or invalid required parameters" });
@@ -305,7 +305,7 @@ router.post(
   },
 );
 
-router.post("/mobile-auth/logout", async (req: Request, res: Response) => {
+router.post("/mobile-auth/logout", async (req: any, res: any) => {
   const sid = getSessionId(req);
   if (sid) {
     await deleteSession(sid);
