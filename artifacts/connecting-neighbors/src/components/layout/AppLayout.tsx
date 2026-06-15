@@ -13,7 +13,9 @@ import {
   Menu,
   Sun,
   Moon,
-  MessageCircle
+  MessageCircle,
+  Sparkles,
+  Heart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -54,6 +56,8 @@ export function AppLayout({ children }: AppLayoutProps) {
     { name: "Alerts", href: "/alerts", icon: AlertTriangle },
     { name: "Resources", href: "/resources", icon: HeartHandshake },
     { name: "Members", href: "/members", icon: Users },
+    { name: "AI Guide", href: "/assistant", icon: Sparkles },
+    { name: "Feedback", href: "/feedback", icon: Heart },
   ];
 
   const NavLinks = () => (

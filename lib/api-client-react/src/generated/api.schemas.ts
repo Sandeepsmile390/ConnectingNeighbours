@@ -318,6 +318,49 @@ export interface Conversation {
   unreadCount: number;
 }
 
+export type FeedbackCategory =
+  (typeof FeedbackCategory)[keyof typeof FeedbackCategory];
+
+export const FeedbackCategory = {
+  bug: "bug",
+  suggestion: "suggestion",
+  complaint: "complaint",
+  other: "other",
+} as const;
+
+export interface Feedback {
+  id: number;
+  userId: number;
+  category: FeedbackCategory;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
+export type CreateFeedbackBodyCategory =
+  (typeof CreateFeedbackBodyCategory)[keyof typeof CreateFeedbackBodyCategory];
+
+export const CreateFeedbackBodyCategory = {
+  bug: "bug",
+  suggestion: "suggestion",
+  complaint: "complaint",
+  other: "other",
+} as const;
+
+export interface CreateFeedbackBody {
+  category: CreateFeedbackBodyCategory;
+  rating: number;
+  comment: string;
+}
+
+export interface AiQueryBody {
+  message: string;
+}
+
+export interface AiQueryResponse {
+  response: string;
+}
+
 export type ListPostsParams = {
   category?: string;
   limit?: number;

@@ -10,6 +10,7 @@ import {
   resourcesTable,
   commentsTable,
   messagesTable,
+  feedbacksTable,
 } from "./community.js";
 
 export const neighborhoodUsersRelations = relations(neighborhoodUsersTable, ({ many }) => ({
@@ -21,6 +22,7 @@ export const neighborhoodUsersRelations = relations(neighborhoodUsersTable, ({ m
   alerts: many(alertsTable),
   resources: many(resourcesTable),
   comments: many(commentsTable),
+  feedbacks: many(feedbacksTable),
 }));
 
 export const postsRelations = relations(postsTable, ({ one, many }) => ({
@@ -101,6 +103,13 @@ export const messagesRelations = relations(messagesTable, ({ one }) => ({
   }),
   receiver: one(neighborhoodUsersTable, {
     fields: [messagesTable.receiverId],
+    references: [neighborhoodUsersTable.id],
+  }),
+}));
+
+export const feedbacksRelations = relations(feedbacksTable, ({ one }) => ({
+  user: one(neighborhoodUsersTable, {
+    fields: [feedbacksTable.userId],
     references: [neighborhoodUsersTable.id],
   }),
 }));

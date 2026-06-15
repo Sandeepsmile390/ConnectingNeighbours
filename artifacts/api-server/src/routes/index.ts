@@ -10,6 +10,8 @@ import resourcesRouter from "./resources.js";
 import feedRouter from "./feed.js";
 import commentsRouter from "./comments.js";
 import messagesRouter from "./messages.js";
+import feedbackRouter from "./feedback.js";
+import aiRouter from "./ai.js";
 
 const router = Router();
 
@@ -24,5 +26,7 @@ router.use(resourcesRouter);
 router.use(feedRouter);
 router.use(commentsRouter);
 router.use(messagesRouter);
+router.use(feedbackRouter);
+router.use(aiRouter);
 
 export default router;

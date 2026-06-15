@@ -18,6 +18,8 @@ import type {
 
 import type {
   ActivityItem,
+  AiQueryBody,
+  AiQueryResponse,
   Alert,
   Comment,
   CommunityStats,
@@ -25,12 +27,14 @@ import type {
   CreateAlertBody,
   CreateCommentBody,
   CreateEventBody,
+  CreateFeedbackBody,
   CreateListingBody,
   CreateMessageBody,
   CreatePostBody,
   CreateResourceBody,
   ErrorResponse,
   Event,
+  Feedback,
   HealthStatus,
   LikeResponse,
   ListListingsParams,
@@ -2691,4 +2695,176 @@ export const useSendMessage = <
   TContext
 > => {
   return useMutation(getSendMessageMutationOptions(options));
+};
+
+/**
+ * @summary Submit user feedback or report a bug
+ */
+export const getSubmitFeedbackUrl = () => {
+  return `/api/feedback`;
+};
+
+export const submitFeedback = async (
+  createFeedbackBody: CreateFeedbackBody,
+  options?: RequestInit,
+): Promise<Feedback> => {
+  return customFetch<Feedback>(getSubmitFeedbackUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createFeedbackBody),
+  });
+};
+
+export const getSubmitFeedbackMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitFeedback>>,
+    TError,
+    { data: BodyType<CreateFeedbackBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof submitFeedback>>,
+  TError,
+  { data: BodyType<CreateFeedbackBody> },
+  TContext
+> => {
+  const mutationKey = ["submitFeedback"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof submitFeedback>>,
+    { data: BodyType<CreateFeedbackBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return submitFeedback(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SubmitFeedbackMutationResult = NonNullable<
+  Awaited<ReturnType<typeof submitFeedback>>
+>;
+export type SubmitFeedbackMutationBody = BodyType<CreateFeedbackBody>;
+export type SubmitFeedbackMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Submit user feedback or report a bug
+ */
+export const useSubmitFeedback = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitFeedback>>,
+    TError,
+    { data: BodyType<CreateFeedbackBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof submitFeedback>>,
+  TError,
+  { data: BodyType<CreateFeedbackBody> },
+  TContext
+> => {
+  return useMutation(getSubmitFeedbackMutationOptions(options));
+};
+
+/**
+ * @summary Query the Gemini AI assistant
+ */
+export const getQueryAiAssistantUrl = () => {
+  return `/api/ai/query`;
+};
+
+export const queryAiAssistant = async (
+  aiQueryBody: AiQueryBody,
+  options?: RequestInit,
+): Promise<AiQueryResponse> => {
+  return customFetch<AiQueryResponse>(getQueryAiAssistantUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(aiQueryBody),
+  });
+};
+
+export const getQueryAiAssistantMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof queryAiAssistant>>,
+    TError,
+    { data: BodyType<AiQueryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof queryAiAssistant>>,
+  TError,
+  { data: BodyType<AiQueryBody> },
+  TContext
+> => {
+  const mutationKey = ["queryAiAssistant"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof queryAiAssistant>>,
+    { data: BodyType<AiQueryBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return queryAiAssistant(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type QueryAiAssistantMutationResult = NonNullable<
+  Awaited<ReturnType<typeof queryAiAssistant>>
+>;
+export type QueryAiAssistantMutationBody = BodyType<AiQueryBody>;
+export type QueryAiAssistantMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Query the Gemini AI assistant
+ */
+export const useQueryAiAssistant = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof queryAiAssistant>>,
+    TError,
+    { data: BodyType<AiQueryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof queryAiAssistant>>,
+  TError,
+  { data: BodyType<AiQueryBody> },
+  TContext
+> => {
+  return useMutation(getQueryAiAssistantMutationOptions(options));
 };

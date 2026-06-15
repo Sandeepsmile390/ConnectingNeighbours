@@ -661,3 +661,23 @@ export const SendMessageBody = zod.object({
   receiverId: zod.number(),
   content: zod.string(),
 });
+
+/**
+ * @summary Submit user feedback or report a bug
+ */
+export const SubmitFeedbackBody = zod.object({
+  category: zod.enum(["bug", "suggestion", "complaint", "other"]),
+  rating: zod.number(),
+  comment: zod.string(),
+});
+
+/**
+ * @summary Query the Gemini AI assistant
+ */
+export const QueryAiAssistantBody = zod.object({
+  message: zod.string(),
+});
+
+export const QueryAiAssistantResponse = zod.object({
+  response: zod.string(),
+});

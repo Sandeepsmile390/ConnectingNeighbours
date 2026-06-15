@@ -609,6 +609,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/Message"
 
+  /feedback:
+    post:
+      operationId: submitFeedback
+      tags: [users]
+      summary: Submit user feedback or report a bug
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFeedbackBody"
+      responses:
+        "201":
+          description: Feedback submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Feedback"
+
+  /ai/query:
+    post:
+      operationId: queryAiAssistant
+      tags: [users]
+      summary: Query the Gemini AI assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiQueryBody"
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiQueryResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -1014,3 +1052,48 @@ components:
         unreadCount:
           type: integer
       required: [neighbor, lastMessage, unreadCount]
+
+    Feedback:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        category:
+          type: string
+          enum: [bug, suggestion, complaint, other]
+        rating:
+          type: integer
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, category, rating, comment, createdAt]
+
+    CreateFeedbackBody:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [bug, suggestion, complaint, other]
+        rating:
+          type: integer
+        comment:
+          type: string
+      required: [category, rating, comment]
+
+    AiQueryBody:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    AiQueryResponse:
+      type: object
+      properties:
+        response:
+          type: string
+      required: [response]

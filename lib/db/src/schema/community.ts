@@ -7,6 +7,7 @@ export const listingTypeEnum = pgEnum("listing_type", ["sell", "free", "rent"]);
 export const listingCategoryEnum = pgEnum("listing_category", ["electronics", "furniture", "clothing", "books", "groceries", "appliances", "other"]);
 export const alertSeverityEnum = pgEnum("alert_severity", ["low", "medium", "high", "emergency"]);
 export const resourceTypeEnum = pgEnum("resource_type", ["ride", "item", "service", "childcare"]);
+export const feedbackCategoryEnum = pgEnum("feedback_category", ["bug", "suggestion", "complaint", "other"]);
 
 export const neighborhoodUsersTable = pgTable("neighborhood_users", {
   id: serial("id").primaryKey(),
@@ -109,6 +110,15 @@ export const messagesTable = pgTable("messages", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const feedbacksTable = pgTable("feedbacks", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => neighborhoodUsersTable.id),
+  category: feedbackCategoryEnum("category").notNull().default("suggestion"),
+  rating: integer("rating").notNull(),
+  comment: text("comment").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const insertNeighborhoodUserSchema = createInsertSchema(neighborhoodUsersTable).omit({ id: true, joinedAt: true });
 export const insertPostSchema = createInsertSchema(postsTable).omit({ id: true, createdAt: true, likesCount: true, commentsCount: true });
 export const insertListingSchema = createInsertSchema(listingsTable).omit({ id: true, createdAt: true });
@@ -117,6 +127,7 @@ export const insertAlertSchema = createInsertSchema(alertsTable).omit({ id: true
 export const insertResourceSchema = createInsertSchema(resourcesTable).omit({ id: true, createdAt: true });
 export const insertCommentSchema = createInsertSchema(commentsTable).omit({ id: true, createdAt: true });
 export const insertMessageSchema = createInsertSchema(messagesTable).omit({ id: true, createdAt: true, isRead: true });
+export const insertFeedbackSchema = createInsertSchema(feedbacksTable).omit({ id: true, createdAt: true });
 
 export type NeighborhoodUser = typeof neighborhoodUsersTable.$inferSelect;
 export type Post = typeof postsTable.$inferSelect;
@@ -126,4 +137,6 @@ export type Alert = typeof alertsTable.$inferSelect;
 export type Resource = typeof resourcesTable.$inferSelect;
 export type Comment = typeof commentsTable.$inferSelect;
 export type Message = typeof messagesTable.$inferSelect;
+export type Feedback = typeof feedbacksTable.$inferSelect;
+
 

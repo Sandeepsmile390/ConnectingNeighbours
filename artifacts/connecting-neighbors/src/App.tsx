@@ -12,6 +12,8 @@ import Resources from "@/pages/resources";
 import Members from "@/pages/members";
 import Profile from "@/pages/profile";
 import Chat from "@/pages/chat";
+import Feedback from "@/pages/feedback";
+import Assistant from "@/pages/assistant";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -26,6 +28,8 @@ function Router() {
       <Route path="/members" component={Members} />
       <Route path="/profile" component={Profile} />
       <Route path="/chat" component={Chat} />
+      <Route path="/feedback" component={Feedback} />
+      <Route path="/assistant" component={Assistant} />
       <Route component={NotFound} />
     </Switch>
   );
