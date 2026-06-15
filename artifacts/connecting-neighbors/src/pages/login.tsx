@@ -27,6 +27,30 @@ export default function Login() {
             <p className="mt-4 text-sm text-muted-foreground">
               Securely authenticate with Replit to verify you're a real neighbor.
             </p>
+
+            <div className="mt-6 pt-6 border-t border-muted-foreground/10 space-y-3">
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
+                Quick Test Account
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1 text-xs hover:bg-muted" 
+                  onClick={() => window.location.href = "/api/auth/dev-login?role=admin"}
+                >
+                  Login as Admin
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1 text-xs hover:bg-muted" 
+                  onClick={() => window.location.href = "/api/auth/dev-login?role=resident"}
+                >
+                  Login as Resident
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

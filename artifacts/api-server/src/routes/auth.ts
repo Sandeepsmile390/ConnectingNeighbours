@@ -238,6 +238,92 @@ router.get("/callback", async (req: any, res: any) => {
   res.redirect(returnTo);
 });
 
+router.get("/auth/dev-login", async (req: any, res: any) => {
+  const role = req.query.role || "resident";
+  const mobileRedirect = req.query.mobile_redirect;
+
+  const isDevAdmin = role === "admin";
+  const replitId = isDevAdmin ? "dev-admin-id" : "dev-resident-id";
+  const email = isDevAdmin ? "admin@dev.local" : "resident@dev.local";
+  const firstName = isDevAdmin ? "Dev" : "Dev";
+  const lastName = isDevAdmin ? "Admin" : "Resident";
+  const username = isDevAdmin ? "dev_admin" : "dev_resident";
+  const name = isDevAdmin ? "Dev Admin" : "Dev Resident";
+  const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+
+  try {
+    const { neighborhoodUsersTable } = await import("@workspace/db");
+    
+    // 1. Upsert into core users table
+    const userData = {
+      id: replitId,
+      email,
+      firstName,
+      lastName,
+      profileImageUrl: avatarUrl,
+    };
+
+    await db.insert(usersTable)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: usersTable.id,
+        set: { ...userData, updatedAt: new Date() }
+      });
+
+    // 2. Upsert into hyperlocal users table
+    await db.insert(neighborhoodUsersTable)
+      .values({
+        replitId,
+        name,
+        username,
+        avatarUrl,
+        isVerified: isDevAdmin,
+        isColonyAdmin: isDevAdmin,
+        isColonyApproved: isDevAdmin,
+      })
+      .onConflictDoUpdate({
+        target: neighborhoodUsersTable.replitId,
+        set: {
+          name,
+          username,
+          avatarUrl,
+          isVerified: isDevAdmin,
+          isColonyAdmin: isDevAdmin,
+          isColonyApproved: isDevAdmin,
+        }
+      });
+
+    // 3. Create Session
+    const sessionData: SessionData = {
+      user: {
+        id: replitId,
+        email,
+        firstName,
+        lastName,
+        profileImageUrl: avatarUrl,
+      },
+      access_token: "mock-access-token",
+      expires_at: Math.floor(Date.now() / 1000) + 7 * 24 * 3600,
+    };
+
+    const sid = await createSession(sessionData);
+
+    // 4. Redirect
+    if (mobileRedirect && isValidMobileRedirect(mobileRedirect)) {
+      const redirectUrl = new URL(mobileRedirect);
+      redirectUrl.searchParams.set("token", sid);
+      res.redirect(redirectUrl.toString());
+      return;
+    }
+
+    setSessionCookie(res, sid);
+    res.redirect("/");
+  } catch (err: any) {
+    req.log.error({ err }, "Dev login failed");
+    res.status(500).json({ error: "Dev login failed", details: err.message });
+  }
+});
+
 router.get("/logout", async (req: any, res: any) => {
   const origin = getOrigin(req);
 

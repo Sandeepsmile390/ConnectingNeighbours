@@ -26,7 +26,7 @@ export default function MoreScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, isAuthenticated, login, logout } = useAuth();
+  const { user, isAuthenticated, login, loginDev, logout } = useAuth();
 
   const webTopPad = Platform.OS === "web" ? 67 : 0;
   const webBotPad = Platform.OS === "web" ? 34 : 0;
@@ -82,6 +82,23 @@ export default function MoreScreen() {
           >
             <Text style={[styles.loginBtnText, { color: colors.primaryForeground }]}>Sign In with Replit</Text>
           </TouchableOpacity>
+
+          <View style={styles.devLoginRow}>
+            <TouchableOpacity
+              style={[styles.devLoginBtn, { borderColor: colors.border }]}
+              onPress={() => loginDev("admin")}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.devLoginBtnText, { color: colors.foreground }]}>Test Admin</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.devLoginBtn, { borderColor: colors.border }]}
+              onPress={() => loginDev("resident")}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.devLoginBtnText, { color: colors.foreground }]}>Test Resident</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
@@ -150,6 +167,9 @@ const styles = StyleSheet.create({
   loginDesc: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 20 },
   loginBtn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 24, marginTop: 8 },
   loginBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  devLoginRow: { flexDirection: "row", gap: 10, marginTop: 12, borderTopWidth: 1, borderTopColor: "rgba(0,0,0,0.06)", paddingTop: 12, width: "100%", justifyContent: "space-between" },
+  devLoginBtn: { flex: 1, paddingVertical: 8, borderWidth: 1, borderRadius: 10, alignItems: "center" },
+  devLoginBtnText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   sectionLabel: {
     fontSize: 11, fontFamily: "Inter_600SemiBold", letterSpacing: 1,
     paddingHorizontal: 20, marginBottom: 8,

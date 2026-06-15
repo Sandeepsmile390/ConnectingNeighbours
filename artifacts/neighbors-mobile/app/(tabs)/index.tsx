@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useGetFeedStats, useGetRecentActivity } from "@workspace/api-client-react";
+import { useGetFeedStats, useGetRecentActivity, useListAlerts } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { StatCard } from "@/components/StatCard";
 import { formatDistanceToNow } from "date-fns";
@@ -33,11 +33,12 @@ export default function HomeScreen() {
 
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGetFeedStats();
   const { data: activity, isLoading: actLoading, refetch: refetchActivity } = useGetRecentActivity();
+  const { data: alerts = [], refetch: refetchAlerts } = useListAlerts();
 
   const [refreshing, setRefreshing] = React.useState(false);
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refetchStats(), refetchActivity()]);
+    await Promise.all([refetchStats(), refetchActivity(), refetchAlerts()]);
     setRefreshing(false);
   };
 
@@ -46,6 +47,8 @@ export default function HomeScreen() {
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  const activeEmergencyAlerts = alerts.filter(a => !a.isResolved && (a.severity === "emergency" || a.severity === "high"));
 
   return (
     <ScrollView
@@ -64,6 +67,86 @@ export default function HomeScreen() {
         <View style={[styles.logoMark, { backgroundColor: colors.primary }]}>
           <Text style={styles.logoText}>CN</Text>
         </View>
+      </View>
+
+      {/* Critical Status Alerts / Messages */}
+      <View style={{ paddingHorizontal: 20, gap: 10, marginBottom: 20 }}>
+        {user && !user.colonyId && (
+          <View style={[styles.statusBanner, { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE" }]}>
+            <Feather name="map-pin" size={16} color="#2563EB" style={{ marginTop: 2 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.statusTitle, { color: "#1D4ED8" }]}>Join a Colony</Text>
+              <Text style={[styles.statusText, { color: "#2563EB" }]}>
+                You haven't joined a colony yet. Register or join a colony in the Colony Hub to connect with neighbors.
+              </Text>
+              <TouchableOpacity onPress={() => router.push("/colonies" as any)} style={{ marginTop: 4 }}>
+                <Text style={{ fontSize: 12, fontWeight: "bold", color: "#1D4ED8" }}>Go to Colony Hub &rarr;</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {user && user.colonyId && !user.isColonyApproved && (
+          <View style={[styles.statusBanner, { backgroundColor: "#FFFBEB", borderColor: "#FCD34D" }]}>
+            <Feather name="alert-triangle" size={16} color="#D97706" style={{ marginTop: 2 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.statusTitle, { color: "#B45309" }]}>Verification Pending</Text>
+              <Text style={[styles.statusText, { color: "#D97706" }]}>
+                Your request to join your colony is pending verification by the administrator.
+              </Text>
+              <TouchableOpacity onPress={() => router.push("/colonies" as any)} style={{ marginTop: 4 }}>
+                <Text style={{ fontSize: 12, fontWeight: "bold", color: "#B45309" }}>Go to Colony Hub &rarr;</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {activeEmergencyAlerts.length > 0 && (
+          <View style={[styles.statusBanner, { backgroundColor: "#FEF2F2", borderColor: "#FCA5A5" }]}>
+            <Feather name="alert-triangle" size={16} color="#DC2626" style={{ marginTop: 2 }} />
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={[styles.statusTitle, { color: "#991B1B" }]}>CRITICAL EMERGENCIES</Text>
+              {activeEmergencyAlerts.map(alert => (
+                <View key={alert.id} style={{ borderLeftWidth: 2, borderLeftColor: "#EF4444", paddingLeft: 8, marginVertical: 2 }}>
+                  <Text style={{ fontSize: 13, fontWeight: "bold", color: "#111827" }}>{alert.title}</Text>
+                  <Text style={{ fontSize: 11, color: "#4B5563" }}>{alert.description}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* Quick Action Grid */}
+      <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Quick Actions</Text>
+      <View style={styles.quickActionGrid}>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => router.push("/alerts" as any)} activeOpacity={0.7}>
+          <View style={[styles.actionIconBg, { backgroundColor: "#EF444415" }]}>
+            <Feather name="alert-triangle" size={18} color="#EF4444" />
+          </View>
+          <Text style={[styles.actionLabel, { color: colors.foreground }]}>Report Alert</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => router.push("/colonies" as any)} activeOpacity={0.7}>
+          <View style={[styles.actionIconBg, { backgroundColor: colors.primary + "15" }]}>
+            <Feather name="map" size={18} color={colors.primary} />
+          </View>
+          <Text style={[styles.actionLabel, { color: colors.foreground }]}>Colony Hub</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => router.push("/assistant" as any)} activeOpacity={0.7}>
+          <View style={[styles.actionIconBg, { backgroundColor: "#6366F115" }]}>
+            <Feather name="cpu" size={18} color="#6366F1" />
+          </View>
+          <Text style={[styles.actionLabel, { color: colors.foreground }]}>AI Assistant</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => router.push("/hostels" as any)} activeOpacity={0.7}>
+          <View style={[styles.actionIconBg, { backgroundColor: "#F9731615" }]}>
+            <Feather name="home" size={18} color="#F97316" />
+          </View>
+          <Text style={[styles.actionLabel, { color: colors.foreground }]}>Browse PGs</Text>
+        </TouchableOpacity>
       </View>
 
       <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Community Stats</Text>
@@ -90,7 +173,7 @@ export default function HomeScreen() {
       )}
 
       <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent Activity</Text>
+        <Text style={[styles.sectionTitle, { color: colors.foreground, paddingHorizontal: 0, marginBottom: 0 }]}>Recent Activity</Text>
       </View>
 
       <View style={[styles.activityCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -137,7 +220,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   headerSection: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 20, marginBottom: 24,
+    paddingHorizontal: 20, marginBottom: 20,
   },
   greeting: { fontSize: 14, fontFamily: "Inter_400Regular" },
   userName: { fontSize: 24, fontFamily: "Inter_700Bold", marginTop: 2 },
@@ -147,7 +230,7 @@ const styles = StyleSheet.create({
   },
   logoText: { color: "#fff", fontSize: 16, fontFamily: "Inter_700Bold" },
   sectionTitle: { fontSize: 18, fontFamily: "Inter_700Bold", paddingHorizontal: 20, marginBottom: 12 },
-  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, marginTop: 8, marginBottom: 12 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, marginTop: 12, marginBottom: 12 },
   statsGrid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 16, gap: 10, marginBottom: 24 },
   skeletonCard: {
     flex: 1, minWidth: "44%", padding: 16,
@@ -160,4 +243,11 @@ const styles = StyleSheet.create({
   actTime: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
   emptyActivity: { padding: 24, alignItems: "center" },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
+  statusBanner: { flexDirection: "row", gap: 12, padding: 14, borderRadius: 16, borderWidth: 1, alignItems: "flex-start" },
+  statusTitle: { fontSize: 14, fontWeight: "bold" },
+  statusText: { fontSize: 12, lineHeight: 18, marginTop: 2 },
+  quickActionGrid: { flexDirection: "row", paddingHorizontal: 16, gap: 8, marginBottom: 24 },
+  actionBtn: { flex: 1, paddingVertical: 12, borderRadius: 16, borderWidth: 1, alignItems: "center", gap: 8 },
+  actionIconBg: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  actionLabel: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
 });

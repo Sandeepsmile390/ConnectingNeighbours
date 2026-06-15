@@ -29,7 +29,25 @@ async function getOrCreateNeighborhoodUser(req: any) {
 export { getOrCreateNeighborhoodUser };
 
 router.get("/users", async (req, res) => {
-  const users = await db.select().from(neighborhoodUsersTable).orderBy(neighborhoodUsersTable.joinedAt);
+  const currentUser = await getOrCreateNeighborhoodUser(req);
+  if (!currentUser) {
+    res.json([]);
+    return;
+  }
+
+  let users;
+  if (currentUser.colonyId) {
+    users = await db.select()
+      .from(neighborhoodUsersTable)
+      .where(eq(neighborhoodUsersTable.colonyId, currentUser.colonyId))
+      .orderBy(neighborhoodUsersTable.joinedAt);
+  } else {
+    users = await db.select()
+      .from(neighborhoodUsersTable)
+      .where(eq(neighborhoodUsersTable.id, currentUser.id))
+      .orderBy(neighborhoodUsersTable.joinedAt);
+  }
+
   const mapped = users.map(u => ({
     id: u.id,
     replitId: u.replitId,

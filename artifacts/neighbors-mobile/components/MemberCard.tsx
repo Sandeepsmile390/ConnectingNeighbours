@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, Linking, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { formatDistanceToNow } from "date-fns";
@@ -12,6 +12,11 @@ interface User {
   avatarUrl?: string | null;
   isVerified: boolean;
   joinedAt: string;
+  twitterUrl?: string | null;
+  facebookUrl?: string | null;
+  linkedinUrl?: string | null;
+  instagramUrl?: string | null;
+  githubUrl?: string | null;
 }
 
 export function MemberCard({ user }: { user: User }) {
@@ -49,6 +54,34 @@ export function MemberCard({ user }: { user: User }) {
       <Text style={[styles.joined, { color: colors.mutedForeground }]}>
         Joined {formatDistanceToNow(new Date(user.joinedAt), { addSuffix: true })}
       </Text>
+
+      {/* Social Links Row */}
+      {(() => {
+        const socialLinks = [
+          { name: "twitter" as const, url: user.twitterUrl },
+          { name: "facebook" as const, url: user.facebookUrl },
+          { name: "linkedin" as const, url: user.linkedinUrl },
+          { name: "instagram" as const, url: user.instagramUrl },
+          { name: "github" as const, url: user.githubUrl },
+        ].filter(item => !!item.url);
+
+        if (socialLinks.length === 0) return null;
+
+        return (
+          <View style={styles.socialRow}>
+            {socialLinks.map((link, idx) => (
+              <TouchableOpacity 
+                key={idx} 
+                onPress={() => link.url && Linking.openURL(link.url)}
+                style={[styles.socialIconBtn, { backgroundColor: colors.muted + "15" }]}
+                activeOpacity={0.7}
+              >
+                <Feather name={link.name} size={11} color={colors.foreground} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        );
+      })()}
     </View>
   );
 }
@@ -75,4 +108,6 @@ const styles = StyleSheet.create({
   apartment: { fontSize: 12, fontFamily: "Inter_400Regular" },
   bio: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 16, marginBottom: 8 },
   joined: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  socialRow: { flexDirection: "row", gap: 6, flexWrap: "wrap", marginTop: 8, borderTopWidth: 1, borderTopColor: "rgba(0,0,0,0.05)", paddingTop: 8 },
+  socialIconBtn: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
 });
