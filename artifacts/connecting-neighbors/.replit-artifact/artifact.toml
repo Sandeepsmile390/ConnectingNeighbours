@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Connecting Neighbors"
+version = "1.0.0"
+id = "artifacts/connecting-neighbors"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24741
+
+[services.development]
+run = "pnpm --filter @workspace/connecting-neighbors run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/connecting-neighbors", "run", "build" ]
+publicDir = "artifacts/connecting-neighbors/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24741"
+BASE_PATH = "/"

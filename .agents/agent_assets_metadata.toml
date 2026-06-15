@@ -1,0 +1,43 @@
+uploads = []
+
+[[generated]]
+id = "KuNGTge70cBc7Yw_ZMDNd"
+uri = "file://artifacts/neighbors-mobile/assets/images/icon.png"
+type = "image"
+title = "generated_image"
+
+[[outputs]]
+id = "TOypw_9xDrXHdxertJrzR"
+uri = "file://blueprints/Design.md"
+type = "text"
+title = "Design.md — UI/UX & Color System"
+
+[[outputs]]
+id = "2eRcZjPyrFj528cqbQqHa"
+uri = "file://blueprints/Architecture.md"
+type = "text"
+title = "Architecture.md — Tech Stack & Structure"
+
+[[outputs]]
+id = "gQROgIogV_5IVPDQfVI3P"
+uri = "file://blueprints/Features.md"
+type = "text"
+title = "Features.md — All Feature Logic"
+
+[[outputs]]
+id = "3U1UUW20FE19nvOjPE-Uz"
+uri = "file://blueprints/Database.md"
+type = "text"
+title = "Database.md — Full Schema & Relations"
+
+[[outputs]]
+id = "uvlw3genBkFQMu8KX03Ep"
+uri = "file://blueprints/API.md"
+type = "text"
+title = "API.md — All 31 Endpoints"
+
+[[outputs]]
+id = "dQlvmXklzVJKUk50rs1No"
+uri = "file://blueprints/Final_Rebuild_Prompt.md"
+type = "text"
+title = "Final_Rebuild_Prompt.md — Master Rebuild Prompt"

@@ -1,0 +1,60 @@
+import { useState, useEffect, useCallback } from "react";
+import type { User } from "@workspace/api-client-react";
+
+export type AuthUser = User;
+
+interface AuthState {
+  user: AuthUser | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: () => void;
+  logout: () => void;
+}
+
+export function useAuth(): AuthState {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/auth/me", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json() as Promise<AuthUser>;
+      })
+      .then((data) => {
+        if (!cancelled) {
+          setUser(data);
+          setIsLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setUser(null);
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const login = useCallback(() => {
+    const base = ((import.meta as any).env?.BASE_URL || "/").replace(/\/+$/, "") || "/";
+    window.location.href = `/api/login?returnTo=${encodeURIComponent(base)}`;
+  }, []);
+
+  const logout = useCallback(() => {
+    window.location.href = "/api/logout";
+  }, []);
+
+  return {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    login,
+    logout,
+  };
+}

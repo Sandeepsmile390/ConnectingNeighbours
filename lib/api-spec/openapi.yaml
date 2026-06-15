@@ -1,0 +1,837 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Connecting Neighbors - Hyperlocal Community App API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User profiles
+  - name: posts
+    description: Community feed posts
+  - name: marketplace
+    description: Buy/sell listings
+  - name: events
+    description: Community events
+  - name: alerts
+    description: Safety and emergency alerts
+  - name: resources
+    description: Resource sharing (rides, items)
+  - name: feed
+    description: Aggregated feed and stats
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List colony members
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get a user profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    put:
+      operationId: updateUser
+      tags: [users]
+      summary: Update user profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserBody"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /posts:
+    get:
+      operationId: listPosts
+      tags: [posts]
+      summary: List community feed posts
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+    post:
+      operationId: createPost
+      tags: [posts]
+      summary: Create a community post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePostBody"
+      responses:
+        "201":
+          description: Created post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+
+  /posts/{id}:
+    get:
+      operationId: getPost
+      tags: [posts]
+      summary: Get a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+    delete:
+      operationId: deletePost
+      tags: [posts]
+      summary: Delete a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /posts/{id}/like:
+    post:
+      operationId: likePost
+      tags: [posts]
+      summary: Like a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Like toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LikeResponse"
+
+  /marketplace:
+    get:
+      operationId: listListings
+      tags: [marketplace]
+      summary: List marketplace items
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [sell, free, rent]
+      responses:
+        "200":
+          description: Listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Listing"
+    post:
+      operationId: createListing
+      tags: [marketplace]
+      summary: Create a marketplace listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateListingBody"
+      responses:
+        "201":
+          description: Created listing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+
+  /marketplace/{id}:
+    get:
+      operationId: getListing
+      tags: [marketplace]
+      summary: Get a listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Listing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+    put:
+      operationId: updateListing
+      tags: [marketplace]
+      summary: Update a listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateListingBody"
+      responses:
+        "200":
+          description: Updated listing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+    delete:
+      operationId: deleteListing
+      tags: [marketplace]
+      summary: Delete a listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List community events
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create a community event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEventBody"
+      responses:
+        "201":
+          description: Created event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+
+  /events/{id}/rsvp:
+    post:
+      operationId: rsvpEvent
+      tags: [events]
+      summary: RSVP to an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: RSVP toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RsvpResponse"
+
+  /alerts:
+    get:
+      operationId: listAlerts
+      tags: [alerts]
+      summary: List safety/emergency alerts
+      responses:
+        "200":
+          description: Alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+    post:
+      operationId: createAlert
+      tags: [alerts]
+      summary: Create a safety alert
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAlertBody"
+      responses:
+        "201":
+          description: Created alert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+
+  /resources:
+    get:
+      operationId: listResources
+      tags: [resources]
+      summary: List shared resources (rides, items, services)
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [ride, item, service, childcare]
+      responses:
+        "200":
+          description: Resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resource"
+    post:
+      operationId: createResource
+      tags: [resources]
+      summary: Offer a shared resource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateResourceBody"
+      responses:
+        "201":
+          description: Created resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resource"
+
+  /resources/{id}:
+    delete:
+      operationId: deleteResource
+      tags: [resources]
+      summary: Remove a shared resource
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /feed/stats:
+    get:
+      operationId: getFeedStats
+      tags: [feed]
+      summary: Get community dashboard stats
+      responses:
+        "200":
+          description: Community stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityStats"
+
+  /feed/activity:
+    get:
+      operationId: getRecentActivity
+      tags: [feed]
+      summary: Get recent activity across all categories
+      responses:
+        "200":
+          description: Recent activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        replitId:
+          type: string
+        name:
+          type: string
+        username:
+          type: string
+        bio:
+          type: string
+          nullable: true
+        apartment:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        isVerified:
+          type: boolean
+        joinedAt:
+          type: string
+          format: date-time
+      required: [id, replitId, name, username, isVerified, joinedAt]
+
+    UpdateUserBody:
+      type: object
+      properties:
+        name:
+          type: string
+        bio:
+          type: string
+        apartment:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+        authorId:
+          type: integer
+        author:
+          $ref: "#/components/schemas/User"
+        title:
+          type: string
+          nullable: true
+        content:
+          type: string
+        category:
+          type: string
+          enum: [general, announcement, helpNeeded, lostFound, recommendation, safety]
+        imageUrl:
+          type: string
+          nullable: true
+        likesCount:
+          type: integer
+        commentsCount:
+          type: integer
+        isLikedByMe:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, authorId, author, content, category, likesCount, commentsCount, isLikedByMe, createdAt]
+
+    CreatePostBody:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+          enum: [general, announcement, helpNeeded, lostFound, recommendation, safety]
+        imageUrl:
+          type: string
+      required: [content, category]
+
+    LikeResponse:
+      type: object
+      properties:
+        liked:
+          type: boolean
+        likesCount:
+          type: integer
+      required: [liked, likesCount]
+
+    Listing:
+      type: object
+      properties:
+        id:
+          type: integer
+        sellerId:
+          type: integer
+        seller:
+          $ref: "#/components/schemas/User"
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          nullable: true
+        type:
+          type: string
+          enum: [sell, free, rent]
+        category:
+          type: string
+          enum: [electronics, furniture, clothing, books, groceries, appliances, other]
+        imageUrl:
+          type: string
+          nullable: true
+        isAvailable:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, sellerId, seller, title, description, type, category, isAvailable, createdAt]
+
+    CreateListingBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        type:
+          type: string
+          enum: [sell, free, rent]
+        category:
+          type: string
+          enum: [electronics, furniture, clothing, books, groceries, appliances, other]
+        imageUrl:
+          type: string
+      required: [title, description, type, category]
+
+    UpdateListingBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        isAvailable:
+          type: boolean
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        organizerId:
+          type: integer
+        organizer:
+          $ref: "#/components/schemas/User"
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+          nullable: true
+        rsvpCount:
+          type: integer
+        isRsvpedByMe:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, organizerId, organizer, title, description, location, startsAt, rsvpCount, isRsvpedByMe, createdAt]
+
+    CreateEventBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+      required: [title, description, location, startsAt]
+
+    RsvpResponse:
+      type: object
+      properties:
+        rsvped:
+          type: boolean
+        rsvpCount:
+          type: integer
+      required: [rsvped, rsvpCount]
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        reporterId:
+          type: integer
+        reporter:
+          $ref: "#/components/schemas/User"
+        title:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, emergency]
+        isResolved:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, reporterId, reporter, title, description, severity, isResolved, createdAt]
+
+    CreateAlertBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, emergency]
+      required: [title, description, severity]
+
+    Resource:
+      type: object
+      properties:
+        id:
+          type: integer
+        offererId:
+          type: integer
+        offerer:
+          $ref: "#/components/schemas/User"
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [ride, item, service, childcare]
+        isAvailable:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, offererId, offerer, title, description, type, isAvailable, createdAt]
+
+    CreateResourceBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [ride, item, service, childcare]
+      required: [title, description, type]
+
+    CommunityStats:
+      type: object
+      properties:
+        totalMembers:
+          type: integer
+        totalPosts:
+          type: integer
+        activeListings:
+          type: integer
+        upcomingEvents:
+          type: integer
+        activeAlerts:
+          type: integer
+        availableResources:
+          type: integer
+      required: [totalMembers, totalPosts, activeListings, upcomingEvents, activeAlerts, availableResources]
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [post, listing, event, alert, resource]
+        title:
+          type: string
+        description:
+          type: string
+        actorName:
+          type: string
+        actorAvatar:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, type, title, description, actorName, createdAt]
