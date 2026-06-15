@@ -560,3 +560,104 @@ export const GetRecentActivityResponseItem = zod.object({
 export const GetRecentActivityResponse = zod.array(
   GetRecentActivityResponseItem,
 );
+
+/**
+ * @summary List comments for a post
+ */
+export const ListCommentsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ListCommentsResponseItem = zod.object({
+  id: zod.number(),
+  postId: zod.number(),
+  authorId: zod.number(),
+  author: zod.object({
+    id: zod.number(),
+    replitId: zod.string(),
+    name: zod.string(),
+    username: zod.string(),
+    bio: zod.string().nullish(),
+    apartment: zod.string().nullish(),
+    avatarUrl: zod.string().nullish(),
+    phone: zod.string().nullish(),
+    isVerified: zod.boolean(),
+    joinedAt: zod.coerce.date(),
+  }),
+  content: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const ListCommentsResponse = zod.array(ListCommentsResponseItem);
+
+/**
+ * @summary Add a comment to a post
+ */
+export const CreateCommentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const CreateCommentBody = zod.object({
+  content: zod.string(),
+});
+
+/**
+ * @summary Delete a comment
+ */
+export const DeleteCommentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary List message conversation threads
+ */
+export const ListConversationsResponseItem = zod.object({
+  neighbor: zod.object({
+    id: zod.number(),
+    replitId: zod.string(),
+    name: zod.string(),
+    username: zod.string(),
+    bio: zod.string().nullish(),
+    apartment: zod.string().nullish(),
+    avatarUrl: zod.string().nullish(),
+    phone: zod.string().nullish(),
+    isVerified: zod.boolean(),
+    joinedAt: zod.coerce.date(),
+  }),
+  lastMessage: zod.object({
+    id: zod.number(),
+    senderId: zod.number(),
+    receiverId: zod.number(),
+    content: zod.string(),
+    isRead: zod.boolean(),
+    createdAt: zod.coerce.date(),
+  }),
+  unreadCount: zod.number(),
+});
+export const ListConversationsResponse = zod.array(
+  ListConversationsResponseItem,
+);
+
+/**
+ * @summary Get messages in a conversation thread
+ */
+export const ListMessagesParams = zod.object({
+  neighborId: zod.coerce.number(),
+});
+
+export const ListMessagesResponseItem = zod.object({
+  id: zod.number(),
+  senderId: zod.number(),
+  receiverId: zod.number(),
+  content: zod.string(),
+  isRead: zod.boolean(),
+  createdAt: zod.coerce.date(),
+});
+export const ListMessagesResponse = zod.array(ListMessagesResponseItem);
+
+/**
+ * @summary Send a direct message
+ */
+export const SendMessageBody = zod.object({
+  receiverId: zod.number(),
+  content: zod.string(),
+});

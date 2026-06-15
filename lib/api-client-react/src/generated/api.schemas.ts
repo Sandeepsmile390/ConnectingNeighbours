@@ -285,6 +285,39 @@ export interface ActivityItem {
   createdAt: string;
 }
 
+export interface Comment {
+  id: number;
+  postId: number;
+  authorId: number;
+  author: User;
+  content: string;
+  createdAt: string;
+}
+
+export interface CreateCommentBody {
+  content: string;
+}
+
+export interface Message {
+  id: number;
+  senderId: number;
+  receiverId: number;
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface CreateMessageBody {
+  receiverId: number;
+  content: string;
+}
+
+export interface Conversation {
+  neighbor: User;
+  lastMessage: Message;
+  unreadCount: number;
+}
+
 export type ListPostsParams = {
   category?: string;
   limit?: number;

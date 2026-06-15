@@ -8,6 +8,8 @@ import eventsRouter from "./events.js";
 import alertsRouter from "./alerts.js";
 import resourcesRouter from "./resources.js";
 import feedRouter from "./feed.js";
+import commentsRouter from "./comments.js";
+import messagesRouter from "./messages.js";
 
 const router = Router();
 
@@ -20,5 +22,7 @@ router.use(eventsRouter);
 router.use(alertsRouter);
 router.use(resourcesRouter);
 router.use(feedRouter);
+router.use(commentsRouter);
+router.use(messagesRouter);
 
 export default router;

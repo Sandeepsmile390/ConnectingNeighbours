@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useListPosts, useCreatePost, useLikePost, useDeletePost, getListPostsQueryKey } from "@workspace/api-client-react";
+import { 
+  useListPosts, 
+  useCreatePost, 
+  useLikePost, 
+  useDeletePost, 
+  getListPostsQueryKey,
+  useListComments,
+  useCreateComment,
+  useDeleteComment,
+  getListCommentsQueryKey
+} from "@workspace/api-client-react";
 import { useAuth } from "@workspace/replit-auth-web";
 import { formatDistanceToNow } from "date-fns";
 import { Heart, MessageSquare, Trash2, Plus } from "lucide-react";
@@ -36,6 +46,7 @@ const formSchema = z.object({
 export default function Feed() {
   const [filter, setFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
+  const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -247,12 +258,120 @@ export default function Feed() {
                   <Heart className={`h-4 w-4 ${post.isLikedByMe ? 'fill-current' : ''}`} />
                   {post.likesCount}
                 </Button>
-                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground cursor-default hover:bg-transparent">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className={`gap-2 ${expandedPostId === post.id ? 'text-primary bg-primary/5' : 'text-muted-foreground'}`}
+                  onClick={() => setExpandedPostId(expandedPostId === post.id ? null : post.id)}
+                >
                   <MessageSquare className="h-4 w-4" />
                   {post.commentsCount}
                 </Button>
               </CardFooter>
+              {expandedPostId === post.id && (
+                <PostComments postId={post.id} />
+              )}
             </Card>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PostComments({ postId }: { postId: number }) {
+  const { data: comments, isLoading } = useListComments(postId);
+  const createComment = useCreateComment();
+  const deleteComment = useDeleteComment();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [commentText, setCommentText] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+
+    createComment.mutate({
+      id: postId,
+      data: { content: commentText.trim() },
+    }, {
+      onSuccess: () => {
+        setCommentText("");
+        queryClient.invalidateQueries({ queryKey: getListCommentsQueryKey(postId) });
+        queryClient.invalidateQueries({ queryKey: getListPostsQueryKey() });
+        toast({ title: "Comment added" });
+      },
+      onError: () => {
+        toast({ title: "Failed to add comment", variant: "destructive" });
+      }
+    });
+  };
+
+  const handleDelete = (commentId: number) => {
+    deleteComment.mutate({ id: commentId }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListCommentsQueryKey(postId) });
+        queryClient.invalidateQueries({ queryKey: getListPostsQueryKey() });
+        toast({ title: "Comment deleted" });
+      },
+      onError: () => {
+        toast({ title: "Failed to delete comment", variant: "destructive" });
+      }
+    });
+  };
+
+  return (
+    <div className="border-t bg-muted/20 px-5 py-4 space-y-4">
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <Input 
+          placeholder="Write a comment..." 
+          value={commentText} 
+          onChange={(e) => setCommentText(e.target.value)}
+          className="flex-1 text-sm bg-background"
+          disabled={createComment.isPending}
+        />
+        <Button type="submit" size="sm" disabled={createComment.isPending}>
+          {createComment.isPending ? "Posting..." : "Comment"}
+        </Button>
+      </form>
+
+      <div className="space-y-3">
+        {isLoading ? (
+          <div className="text-center py-2 text-xs text-muted-foreground animate-pulse">Loading comments...</div>
+        ) : comments?.length === 0 ? (
+          <div className="text-center py-2 text-xs text-muted-foreground">No comments yet. Be the first to comment!</div>
+        ) : (
+          comments?.map((comment) => (
+            <div key={comment.id} className="flex gap-3 text-sm items-start">
+              <Avatar className="h-7 w-7 mt-0.5">
+                <AvatarImage src={comment.author.avatarUrl || undefined} />
+                <AvatarFallback className="text-xs">{comment.author.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0 bg-card border rounded-lg px-3 py-2 shadow-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-semibold text-foreground text-xs">{comment.author.name}</span>
+                    {comment.author.apartment && (
+                      <span className="text-[10px] text-muted-foreground">• {comment.author.apartment}</span>
+                    )}
+                    <span className="text-[10px] text-muted-foreground">• {formatDistanceToNow(new Date(comment.createdAt))} ago</span>
+                  </div>
+                  {user?.id === comment.authorId && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-5 w-5 text-muted-foreground hover:text-destructive" 
+                      onClick={() => handleDelete(comment.id)}
+                      disabled={deleteComment.isPending}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+                <p className="text-foreground text-xs mt-1 whitespace-pre-wrap">{comment.content}</p>
+              </div>
+            </div>
           ))
         )}
       </div>

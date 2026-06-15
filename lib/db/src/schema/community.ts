@@ -92,12 +92,31 @@ export const resourcesTable = pgTable("resources", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const commentsTable = pgTable("comments", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").notNull().references(() => postsTable.id, { onDelete: "cascade" }),
+  authorId: integer("author_id").notNull().references(() => neighborhoodUsersTable.id),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const messagesTable = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  senderId: integer("sender_id").notNull().references(() => neighborhoodUsersTable.id),
+  receiverId: integer("receiver_id").notNull().references(() => neighborhoodUsersTable.id),
+  content: text("content").notNull(),
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const insertNeighborhoodUserSchema = createInsertSchema(neighborhoodUsersTable).omit({ id: true, joinedAt: true });
 export const insertPostSchema = createInsertSchema(postsTable).omit({ id: true, createdAt: true, likesCount: true, commentsCount: true });
 export const insertListingSchema = createInsertSchema(listingsTable).omit({ id: true, createdAt: true });
 export const insertEventSchema = createInsertSchema(eventsTable).omit({ id: true, createdAt: true, rsvpCount: true });
 export const insertAlertSchema = createInsertSchema(alertsTable).omit({ id: true, createdAt: true, isResolved: true });
 export const insertResourceSchema = createInsertSchema(resourcesTable).omit({ id: true, createdAt: true });
+export const insertCommentSchema = createInsertSchema(commentsTable).omit({ id: true, createdAt: true });
+export const insertMessageSchema = createInsertSchema(messagesTable).omit({ id: true, createdAt: true, isRead: true });
 
 export type NeighborhoodUser = typeof neighborhoodUsersTable.$inferSelect;
 export type Post = typeof postsTable.$inferSelect;
@@ -105,3 +124,6 @@ export type Listing = typeof listingsTable.$inferSelect;
 export type Event = typeof eventsTable.$inferSelect;
 export type Alert = typeof alertsTable.$inferSelect;
 export type Resource = typeof resourcesTable.$inferSelect;
+export type Comment = typeof commentsTable.$inferSelect;
+export type Message = typeof messagesTable.$inferSelect;
+

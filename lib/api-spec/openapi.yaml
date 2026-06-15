@@ -26,6 +26,8 @@ tags:
     description: Resource sharing (rides, items)
   - name: feed
     description: Aggregated feed and stats
+  - name: messages
+    description: Direct messaging between neighbors
 
 paths:
   /healthz:
@@ -493,6 +495,120 @@ paths:
                 items:
                   $ref: "#/components/schemas/ActivityItem"
 
+  /posts/{id}/comments:
+    get:
+      operationId: listComments
+      tags: [posts]
+      summary: List comments for a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+    post:
+      operationId: createComment
+      tags: [posts]
+      summary: Add a comment to a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentBody"
+      responses:
+        "201":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+
+  /comments/{id}:
+    delete:
+      operationId: deleteComment
+      tags: [posts]
+      summary: Delete a comment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /messages/conversations:
+    get:
+      operationId: listConversations
+      tags: [messages]
+      summary: List message conversation threads
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+
+  /messages/{neighborId}:
+    get:
+      operationId: listMessages
+      tags: [messages]
+      summary: Get messages in a conversation thread
+      parameters:
+        - name: neighborId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+
+  /messages:
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a direct message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMessageBody"
+      responses:
+        "201":
+          description: Sent message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
 components:
   schemas:
     HealthStatus:
@@ -835,3 +951,66 @@ components:
           type: string
           format: date-time
       required: [id, type, title, description, actorName, createdAt]
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+        postId:
+          type: integer
+        authorId:
+          type: integer
+        author:
+          $ref: "#/components/schemas/User"
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, postId, authorId, author, content, createdAt]
+
+    CreateCommentBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required: [content]
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        senderId:
+          type: integer
+        receiverId:
+          type: integer
+        content:
+          type: string
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, senderId, receiverId, content, isRead, createdAt]
+
+    CreateMessageBody:
+      type: object
+      properties:
+        receiverId:
+          type: integer
+        content:
+          type: string
+      required: [receiverId, content]
+
+    Conversation:
+      type: object
+      properties:
+        neighbor:
+          $ref: "#/components/schemas/User"
+        lastMessage:
+          $ref: "#/components/schemas/Message"
+        unreadCount:
+          type: integer
+      required: [neighbor, lastMessage, unreadCount]

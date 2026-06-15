@@ -8,6 +8,8 @@ import {
   eventRsvpsTable,
   alertsTable,
   resourcesTable,
+  commentsTable,
+  messagesTable,
 } from "./community.js";
 
 export const neighborhoodUsersRelations = relations(neighborhoodUsersTable, ({ many }) => ({
@@ -18,6 +20,7 @@ export const neighborhoodUsersRelations = relations(neighborhoodUsersTable, ({ m
   eventRsvps: many(eventRsvpsTable),
   alerts: many(alertsTable),
   resources: many(resourcesTable),
+  comments: many(commentsTable),
 }));
 
 export const postsRelations = relations(postsTable, ({ one, many }) => ({
@@ -26,6 +29,7 @@ export const postsRelations = relations(postsTable, ({ one, many }) => ({
     references: [neighborhoodUsersTable.id],
   }),
   likes: many(postLikesTable),
+  comments: many(commentsTable),
 }));
 
 export const postLikesRelations = relations(postLikesTable, ({ one }) => ({
@@ -75,6 +79,28 @@ export const alertsRelations = relations(alertsTable, ({ one }) => ({
 export const resourcesRelations = relations(resourcesTable, ({ one }) => ({
   offerer: one(neighborhoodUsersTable, {
     fields: [resourcesTable.offererId],
+    references: [neighborhoodUsersTable.id],
+  }),
+}));
+
+export const commentsRelations = relations(commentsTable, ({ one }) => ({
+  post: one(postsTable, {
+    fields: [commentsTable.postId],
+    references: [postsTable.id],
+  }),
+  author: one(neighborhoodUsersTable, {
+    fields: [commentsTable.authorId],
+    references: [neighborhoodUsersTable.id],
+  }),
+}));
+
+export const messagesRelations = relations(messagesTable, ({ one }) => ({
+  sender: one(neighborhoodUsersTable, {
+    fields: [messagesTable.senderId],
+    references: [neighborhoodUsersTable.id],
+  }),
+  receiver: one(neighborhoodUsersTable, {
+    fields: [messagesTable.receiverId],
     references: [neighborhoodUsersTable.id],
   }),
 }));

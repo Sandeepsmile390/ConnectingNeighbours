@@ -12,7 +12,8 @@ import {
   LogOut,
   Menu,
   Sun,
-  Moon
+  Moon,
+  MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,6 +48,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const navigation = [
     { name: "Home", href: "/", icon: Home },
     { name: "Feed", href: "/feed", icon: MessageSquare },
+    { name: "Messages", href: "/chat", icon: MessageCircle },
     { name: "Marketplace", href: "/marketplace", icon: ShoppingBag },
     { name: "Events", href: "/events", icon: Calendar },
     { name: "Alerts", href: "/alerts", icon: AlertTriangle },
