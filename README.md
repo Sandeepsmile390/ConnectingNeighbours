@@ -53,7 +53,7 @@ The project is structured logically into separate workspaces and shared packages
 * **Posting Slot Form**: Allows verified residents to post rental accommodations with detailed pricing (in ₹), description, amenities, and contact info.
 
 ### 🤖 Gemini AI Neighborhood Guide
-* **Real-time Local Expert**: A chatbot assistant integrating a Google Gemini model (`gemini-1.5-flash`) to answer neighbor inquiries.
+* **Real-time Local Expert**: A chatbot assistant integrating a Google Gemini model (`gemini-2.5-flash`) to answer neighbor inquiries.
 * **Live Context Infusion**: Automatically pulls active marketplace listings, events, safety alerts, resource sharing items, and verified members directly from the database and inserts them into the AI's prompt context.
 * **Quick Action Cards**: Ready-made buttons to ask the AI about upcoming events, active listings, or resources to borrow.
 

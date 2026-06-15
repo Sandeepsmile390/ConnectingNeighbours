@@ -11,6 +11,7 @@ import { logger } from "./lib/logger.js";
 import { authMiddleware } from "./middlewares/authMiddleware.js";
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Set up security headers
 app.use(
