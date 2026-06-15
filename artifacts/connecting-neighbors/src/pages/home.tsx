@@ -1,6 +1,6 @@
 import { useGetFeedStats, useGetRecentActivity, getGetFeedStatsQueryKey, getGetRecentActivityQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, MessageSquare, ShoppingBag, Calendar, AlertTriangle, HeartHandshake } from "lucide-react";
+import { Users, MessageSquare, ShoppingBag, Calendar, AlertTriangle, HeartHandshake, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -146,6 +146,50 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
+
+      {/* About the App Section */}
+      <Card className="border-muted/50 bg-gradient-to-r from-purple-500/[0.02] via-indigo-500/[0.02] to-blue-500/[0.02] shadow-sm overflow-hidden mt-6">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-bold flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-indigo-500 animate-pulse" />
+            About Connecting Neighbors
+          </CardTitle>
+          <CardDescription>
+            Learn how this platform helps build a stronger, safer, and more collaborative local community.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-6 md:grid-cols-3">
+          <div className="space-y-2.5 p-4 rounded-xl bg-card border border-muted/50 hover:border-indigo-500/20 hover:scale-[1.01] transition-all duration-300">
+            <div className="h-9 w-9 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center font-bold">
+              1
+            </div>
+            <h3 className="font-bold text-sm">What is the portal?</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              A secure digital square for verified residents of our community. It connects neighbors for conversations, local announcements, resources sharing, and direct messaging.
+            </p>
+          </div>
+
+          <div className="space-y-2.5 p-4 rounded-xl bg-card border border-muted/50 hover:border-indigo-500/20 hover:scale-[1.01] transition-all duration-300">
+            <div className="h-9 w-9 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
+              2
+            </div>
+            <h3 className="font-bold text-sm">What problems does it solve?</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Shatters physical isolation by making local connections easy, simplifies resource/tool sharing to eliminate waste, and establishes immediate awareness of local safety emergencies.
+            </p>
+          </div>
+
+          <div className="space-y-2.5 p-4 rounded-xl bg-card border border-muted/50 hover:border-indigo-500/20 hover:scale-[1.01] transition-all duration-300">
+            <div className="h-9 w-9 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
+              3
+            </div>
+            <h3 className="font-bold text-sm">Why should you use it?</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Find support when you need a hand, buy or trade items locally with trust, borrow utility tools from verified neighbors, and contribute to building a vibrant, connected environment.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
