@@ -79,9 +79,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r bg-card h-screen sticky top-0">
         <div className="p-6 flex items-center gap-3 border-b">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold">
-            CN
-          </div>
+          <img src="/logo.png" alt="Connecting Neighbors" className="h-8 w-8 rounded-lg object-cover" />
           <span className="font-semibold text-lg tracking-tight">Neighbors</span>
         </div>
         <div className="flex-1 overflow-y-auto p-4">
@@ -112,9 +110,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="flex-1 flex flex-col min-w-0">
         <header className="md:hidden border-b bg-card h-16 flex items-center justify-between px-4 sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-              CN
-            </div>
+            <img src="/logo.png" alt="Connecting Neighbors" className="h-8 w-8 rounded-lg object-cover" />
             <span className="font-semibold">Neighbors</span>
           </div>
           <div className="flex items-center gap-2">

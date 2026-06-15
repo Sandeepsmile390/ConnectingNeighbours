@@ -9,9 +9,7 @@ export default function Login() {
     <div className="min-h-[100dvh] flex flex-col bg-background">
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-md space-y-8 text-center animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <div className="mx-auto w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-            <HeartHandshake className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <img src="/logo.png" alt="Connecting Neighbors Logo" className="mx-auto w-16 h-16 rounded-2xl shadow-lg shadow-primary/10 object-cover" />
           
           <div className="space-y-2">
             <h1 className="text-4xl font-bold tracking-tight text-foreground">
