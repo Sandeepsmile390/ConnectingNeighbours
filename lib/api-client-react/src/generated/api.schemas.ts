@@ -24,6 +24,14 @@ export interface User {
   phone?: string | null;
   isVerified: boolean;
   joinedAt: string;
+  colonyId?: number | null;
+  isColonyAdmin: boolean;
+  isColonyApproved: boolean;
+  twitterUrl?: string | null;
+  facebookUrl?: string | null;
+  linkedinUrl?: string | null;
+  instagramUrl?: string | null;
+  githubUrl?: string | null;
 }
 
 export interface UpdateUserBody {
@@ -32,6 +40,11 @@ export interface UpdateUserBody {
   apartment?: string;
   phone?: string;
   avatarUrl?: string;
+  twitterUrl?: string;
+  facebookUrl?: string;
+  linkedinUrl?: string;
+  instagramUrl?: string;
+  githubUrl?: string;
 }
 
 export type PostCategory = (typeof PostCategory)[keyof typeof PostCategory];
@@ -361,6 +374,43 @@ export interface AiQueryResponse {
   response: string;
 }
 
+export interface Colony {
+  id: number;
+  name: string;
+  description: string;
+  address: string;
+  createdById: number;
+  createdAt: string;
+}
+
+export interface CreateColonyBody {
+  name: string;
+  description: string;
+  address: string;
+}
+
+export interface Hostel {
+  id: number;
+  name: string;
+  address: string;
+  description: string;
+  contactInfo: string;
+  price: number;
+  colonyId: number;
+  createdById: number;
+  isAvailable: boolean;
+  createdAt: string;
+}
+
+export interface CreateHostelBody {
+  name: string;
+  address: string;
+  description: string;
+  contactInfo: string;
+  price: number;
+  colonyId: number;
+}
+
 export type ListPostsParams = {
   category?: string;
   limit?: number;
@@ -394,3 +444,11 @@ export const ListResourcesType = {
   service: "service",
   childcare: "childcare",
 } as const;
+
+export type JoinColonyBody = {
+  colonyId: number;
+};
+
+export type VerifyColonyMemberBody = {
+  memberId: number;
+};

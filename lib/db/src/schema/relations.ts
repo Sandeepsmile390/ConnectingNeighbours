@@ -11,9 +11,11 @@ import {
   commentsTable,
   messagesTable,
   feedbacksTable,
+  coloniesTable,
+  hostelsTable,
 } from "./community.js";
 
-export const neighborhoodUsersRelations = relations(neighborhoodUsersTable, ({ many }) => ({
+export const neighborhoodUsersRelations = relations(neighborhoodUsersTable, ({ one, many }) => ({
   posts: many(postsTable),
   postLikes: many(postLikesTable),
   listings: many(listingsTable),
@@ -23,6 +25,12 @@ export const neighborhoodUsersRelations = relations(neighborhoodUsersTable, ({ m
   resources: many(resourcesTable),
   comments: many(commentsTable),
   feedbacks: many(feedbacksTable),
+  colony: one(coloniesTable, {
+    fields: [neighborhoodUsersTable.colonyId],
+    references: [coloniesTable.id],
+  }),
+  createdColonies: many(coloniesTable),
+  createdHostels: many(hostelsTable),
 }));
 
 export const postsRelations = relations(postsTable, ({ one, many }) => ({
@@ -110,6 +118,26 @@ export const messagesRelations = relations(messagesTable, ({ one }) => ({
 export const feedbacksRelations = relations(feedbacksTable, ({ one }) => ({
   user: one(neighborhoodUsersTable, {
     fields: [feedbacksTable.userId],
+    references: [neighborhoodUsersTable.id],
+  }),
+}));
+
+export const coloniesRelations = relations(coloniesTable, ({ one, many }) => ({
+  createdBy: one(neighborhoodUsersTable, {
+    fields: [coloniesTable.createdById],
+    references: [neighborhoodUsersTable.id],
+  }),
+  members: many(neighborhoodUsersTable),
+  hostels: many(hostelsTable),
+}));
+
+export const hostelsRelations = relations(hostelsTable, ({ one }) => ({
+  colony: one(coloniesTable, {
+    fields: [hostelsTable.colonyId],
+    references: [coloniesTable.id],
+  }),
+  createdBy: one(neighborhoodUsersTable, {
+    fields: [hostelsTable.createdById],
     references: [neighborhoodUsersTable.id],
   }),
 }));

@@ -41,6 +41,14 @@ router.get("/users", async (req, res) => {
     phone: u.phone,
     isVerified: u.isVerified,
     joinedAt: u.joinedAt,
+    colonyId: u.colonyId,
+    isColonyAdmin: u.isColonyAdmin,
+    isColonyApproved: u.isColonyApproved,
+    twitterUrl: u.twitterUrl,
+    facebookUrl: u.facebookUrl,
+    linkedinUrl: u.linkedinUrl,
+    instagramUrl: u.instagramUrl,
+    githubUrl: u.githubUrl,
   }));
   res.json(mapped);
 });
@@ -62,6 +70,14 @@ router.get("/users/:id", async (req, res) => {
     phone: user.phone,
     isVerified: user.isVerified,
     joinedAt: user.joinedAt,
+    colonyId: user.colonyId,
+    isColonyAdmin: user.isColonyAdmin,
+    isColonyApproved: user.isColonyApproved,
+    twitterUrl: user.twitterUrl,
+    facebookUrl: user.facebookUrl,
+    linkedinUrl: user.linkedinUrl,
+    instagramUrl: user.instagramUrl,
+    githubUrl: user.githubUrl,
   });
 });
 
@@ -87,6 +103,14 @@ router.put("/users/:id", async (req, res) => {
     phone: updated.phone,
     isVerified: updated.isVerified,
     joinedAt: updated.joinedAt,
+    colonyId: updated.colonyId,
+    isColonyAdmin: updated.isColonyAdmin,
+    isColonyApproved: updated.isColonyApproved,
+    twitterUrl: updated.twitterUrl,
+    facebookUrl: updated.facebookUrl,
+    linkedinUrl: updated.linkedinUrl,
+    instagramUrl: updated.instagramUrl,
+    githubUrl: updated.githubUrl,
   });
 });
 
@@ -105,6 +129,14 @@ router.get("/auth/me", async (req, res) => {
     phone: nbUser.phone,
     isVerified: nbUser.isVerified,
     joinedAt: nbUser.joinedAt,
+    colonyId: nbUser.colonyId,
+    isColonyAdmin: nbUser.isColonyAdmin,
+    isColonyApproved: nbUser.isColonyApproved,
+    twitterUrl: nbUser.twitterUrl,
+    facebookUrl: nbUser.facebookUrl,
+    linkedinUrl: nbUser.linkedinUrl,
+    instagramUrl: nbUser.instagramUrl,
+    githubUrl: nbUser.githubUrl,
   });
 });
 

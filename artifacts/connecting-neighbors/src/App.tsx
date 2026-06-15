@@ -14,6 +14,9 @@ import Profile from "@/pages/profile";
 import Chat from "@/pages/chat";
 import Feedback from "@/pages/feedback";
 import Assistant from "@/pages/assistant";
+import Colonies from "@/pages/colonies";
+import Hostels from "@/pages/hostels";
+import Guidelines from "@/pages/guidelines";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -30,6 +33,9 @@ function Router() {
       <Route path="/chat" component={Chat} />
       <Route path="/feedback" component={Feedback} />
       <Route path="/assistant" component={Assistant} />
+      <Route path="/colonies" component={Colonies} />
+      <Route path="/hostels" component={Hostels} />
+      <Route path="/guidelines" component={Guidelines} />
       <Route component={NotFound} />
     </Switch>
   );

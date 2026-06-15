@@ -12,6 +12,8 @@ import commentsRouter from "./comments.js";
 import messagesRouter from "./messages.js";
 import feedbackRouter from "./feedback.js";
 import aiRouter from "./ai.js";
+import coloniesRouter from "./colonies.js";
+import hostelsRouter from "./hostels.js";
 
 const router = Router();
 
@@ -28,5 +30,7 @@ router.use(commentsRouter);
 router.use(messagesRouter);
 router.use(feedbackRouter);
 router.use(aiRouter);
+router.use(coloniesRouter);
+router.use(hostelsRouter);
 
 export default router;

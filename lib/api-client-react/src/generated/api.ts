@@ -21,13 +21,16 @@ import type {
   AiQueryBody,
   AiQueryResponse,
   Alert,
+  Colony,
   Comment,
   CommunityStats,
   Conversation,
   CreateAlertBody,
+  CreateColonyBody,
   CreateCommentBody,
   CreateEventBody,
   CreateFeedbackBody,
+  CreateHostelBody,
   CreateListingBody,
   CreateMessageBody,
   CreatePostBody,
@@ -36,6 +39,8 @@ import type {
   Event,
   Feedback,
   HealthStatus,
+  Hostel,
+  JoinColonyBody,
   LikeResponse,
   ListListingsParams,
   ListPostsParams,
@@ -48,6 +53,7 @@ import type {
   UpdateListingBody,
   UpdateUserBody,
   User,
+  VerifyColonyMemberBody,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -2867,4 +2873,571 @@ export const useQueryAiAssistant = <
   TContext
 > => {
   return useMutation(getQueryAiAssistantMutationOptions(options));
+};
+
+/**
+ * @summary List all colonies
+ */
+export const getListColoniesUrl = () => {
+  return `/api/colonies`;
+};
+
+export const listColonies = async (
+  options?: RequestInit,
+): Promise<Colony[]> => {
+  return customFetch<Colony[]>(getListColoniesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListColoniesQueryKey = () => {
+  return [`/api/colonies`] as const;
+};
+
+export const getListColoniesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listColonies>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listColonies>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListColoniesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listColonies>>> = ({
+    signal,
+  }) => listColonies({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listColonies>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListColoniesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listColonies>>
+>;
+export type ListColoniesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all colonies
+ */
+
+export function useListColonies<
+  TData = Awaited<ReturnType<typeof listColonies>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listColonies>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListColoniesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a new colony
+ */
+export const getCreateColonyUrl = () => {
+  return `/api/colonies`;
+};
+
+export const createColony = async (
+  createColonyBody: CreateColonyBody,
+  options?: RequestInit,
+): Promise<Colony> => {
+  return customFetch<Colony>(getCreateColonyUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createColonyBody),
+  });
+};
+
+export const getCreateColonyMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createColony>>,
+    TError,
+    { data: BodyType<CreateColonyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createColony>>,
+  TError,
+  { data: BodyType<CreateColonyBody> },
+  TContext
+> => {
+  const mutationKey = ["createColony"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createColony>>,
+    { data: BodyType<CreateColonyBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createColony(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateColonyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createColony>>
+>;
+export type CreateColonyMutationBody = BodyType<CreateColonyBody>;
+export type CreateColonyMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a new colony
+ */
+export const useCreateColony = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createColony>>,
+    TError,
+    { data: BodyType<CreateColonyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createColony>>,
+  TError,
+  { data: BodyType<CreateColonyBody> },
+  TContext
+> => {
+  return useMutation(getCreateColonyMutationOptions(options));
+};
+
+/**
+ * @summary Join a colony
+ */
+export const getJoinColonyUrl = () => {
+  return `/api/colonies/join`;
+};
+
+export const joinColony = async (
+  joinColonyBody: JoinColonyBody,
+  options?: RequestInit,
+): Promise<User> => {
+  return customFetch<User>(getJoinColonyUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(joinColonyBody),
+  });
+};
+
+export const getJoinColonyMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof joinColony>>,
+    TError,
+    { data: BodyType<JoinColonyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof joinColony>>,
+  TError,
+  { data: BodyType<JoinColonyBody> },
+  TContext
+> => {
+  const mutationKey = ["joinColony"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof joinColony>>,
+    { data: BodyType<JoinColonyBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return joinColony(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type JoinColonyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof joinColony>>
+>;
+export type JoinColonyMutationBody = BodyType<JoinColonyBody>;
+export type JoinColonyMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Join a colony
+ */
+export const useJoinColony = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof joinColony>>,
+    TError,
+    { data: BodyType<JoinColonyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof joinColony>>,
+  TError,
+  { data: BodyType<JoinColonyBody> },
+  TContext
+> => {
+  return useMutation(getJoinColonyMutationOptions(options));
+};
+
+/**
+ * @summary List pending members for my colony (admin only)
+ */
+export const getListPendingMembersUrl = () => {
+  return `/api/colonies/pending-members`;
+};
+
+export const listPendingMembers = async (
+  options?: RequestInit,
+): Promise<User[]> => {
+  return customFetch<User[]>(getListPendingMembersUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListPendingMembersQueryKey = () => {
+  return [`/api/colonies/pending-members`] as const;
+};
+
+export const getListPendingMembersQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPendingMembers>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listPendingMembers>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListPendingMembersQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listPendingMembers>>
+  > = ({ signal }) => listPendingMembers({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listPendingMembers>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListPendingMembersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPendingMembers>>
+>;
+export type ListPendingMembersQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List pending members for my colony (admin only)
+ */
+
+export function useListPendingMembers<
+  TData = Awaited<ReturnType<typeof listPendingMembers>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listPendingMembers>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListPendingMembersQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Verify/approve a pending colony member (admin only)
+ */
+export const getVerifyColonyMemberUrl = () => {
+  return `/api/colonies/verify-member`;
+};
+
+export const verifyColonyMember = async (
+  verifyColonyMemberBody: VerifyColonyMemberBody,
+  options?: RequestInit,
+): Promise<User> => {
+  return customFetch<User>(getVerifyColonyMemberUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(verifyColonyMemberBody),
+  });
+};
+
+export const getVerifyColonyMemberMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verifyColonyMember>>,
+    TError,
+    { data: BodyType<VerifyColonyMemberBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof verifyColonyMember>>,
+  TError,
+  { data: BodyType<VerifyColonyMemberBody> },
+  TContext
+> => {
+  const mutationKey = ["verifyColonyMember"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof verifyColonyMember>>,
+    { data: BodyType<VerifyColonyMemberBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return verifyColonyMember(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type VerifyColonyMemberMutationResult = NonNullable<
+  Awaited<ReturnType<typeof verifyColonyMember>>
+>;
+export type VerifyColonyMemberMutationBody = BodyType<VerifyColonyMemberBody>;
+export type VerifyColonyMemberMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Verify/approve a pending colony member (admin only)
+ */
+export const useVerifyColonyMember = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verifyColonyMember>>,
+    TError,
+    { data: BodyType<VerifyColonyMemberBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof verifyColonyMember>>,
+  TError,
+  { data: BodyType<VerifyColonyMemberBody> },
+  TContext
+> => {
+  return useMutation(getVerifyColonyMemberMutationOptions(options));
+};
+
+/**
+ * @summary List all hostel listings
+ */
+export const getListHostelsUrl = () => {
+  return `/api/hostels`;
+};
+
+export const listHostels = async (options?: RequestInit): Promise<Hostel[]> => {
+  return customFetch<Hostel[]>(getListHostelsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListHostelsQueryKey = () => {
+  return [`/api/hostels`] as const;
+};
+
+export const getListHostelsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listHostels>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listHostels>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListHostelsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listHostels>>> = ({
+    signal,
+  }) => listHostels({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listHostels>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListHostelsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listHostels>>
+>;
+export type ListHostelsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all hostel listings
+ */
+
+export function useListHostels<
+  TData = Awaited<ReturnType<typeof listHostels>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listHostels>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListHostelsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a hostel listing
+ */
+export const getCreateHostelUrl = () => {
+  return `/api/hostels`;
+};
+
+export const createHostel = async (
+  createHostelBody: CreateHostelBody,
+  options?: RequestInit,
+): Promise<Hostel> => {
+  return customFetch<Hostel>(getCreateHostelUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createHostelBody),
+  });
+};
+
+export const getCreateHostelMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createHostel>>,
+    TError,
+    { data: BodyType<CreateHostelBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createHostel>>,
+  TError,
+  { data: BodyType<CreateHostelBody> },
+  TContext
+> => {
+  const mutationKey = ["createHostel"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createHostel>>,
+    { data: BodyType<CreateHostelBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createHostel(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateHostelMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createHostel>>
+>;
+export type CreateHostelMutationBody = BodyType<CreateHostelBody>;
+export type CreateHostelMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a hostel listing
+ */
+export const useCreateHostel = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createHostel>>,
+    TError,
+    { data: BodyType<CreateHostelBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createHostel>>,
+  TError,
+  { data: BodyType<CreateHostelBody> },
+  TContext
+> => {
+  return useMutation(getCreateHostelMutationOptions(options));
 };

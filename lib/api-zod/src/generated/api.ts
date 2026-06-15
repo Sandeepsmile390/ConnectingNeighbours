@@ -28,6 +28,14 @@ export const GetMeResponse = zod.object({
   phone: zod.string().nullish(),
   isVerified: zod.boolean(),
   joinedAt: zod.coerce.date(),
+  colonyId: zod.number().nullish(),
+  isColonyAdmin: zod.boolean(),
+  isColonyApproved: zod.boolean(),
+  twitterUrl: zod.string().nullish(),
+  facebookUrl: zod.string().nullish(),
+  linkedinUrl: zod.string().nullish(),
+  instagramUrl: zod.string().nullish(),
+  githubUrl: zod.string().nullish(),
 });
 
 /**
@@ -44,6 +52,14 @@ export const ListUsersResponseItem = zod.object({
   phone: zod.string().nullish(),
   isVerified: zod.boolean(),
   joinedAt: zod.coerce.date(),
+  colonyId: zod.number().nullish(),
+  isColonyAdmin: zod.boolean(),
+  isColonyApproved: zod.boolean(),
+  twitterUrl: zod.string().nullish(),
+  facebookUrl: zod.string().nullish(),
+  linkedinUrl: zod.string().nullish(),
+  instagramUrl: zod.string().nullish(),
+  githubUrl: zod.string().nullish(),
 });
 export const ListUsersResponse = zod.array(ListUsersResponseItem);
 
@@ -65,6 +81,14 @@ export const GetUserResponse = zod.object({
   phone: zod.string().nullish(),
   isVerified: zod.boolean(),
   joinedAt: zod.coerce.date(),
+  colonyId: zod.number().nullish(),
+  isColonyAdmin: zod.boolean(),
+  isColonyApproved: zod.boolean(),
+  twitterUrl: zod.string().nullish(),
+  facebookUrl: zod.string().nullish(),
+  linkedinUrl: zod.string().nullish(),
+  instagramUrl: zod.string().nullish(),
+  githubUrl: zod.string().nullish(),
 });
 
 /**
@@ -80,6 +104,11 @@ export const UpdateUserBody = zod.object({
   apartment: zod.string().optional(),
   phone: zod.string().optional(),
   avatarUrl: zod.string().optional(),
+  twitterUrl: zod.string().optional(),
+  facebookUrl: zod.string().optional(),
+  linkedinUrl: zod.string().optional(),
+  instagramUrl: zod.string().optional(),
+  githubUrl: zod.string().optional(),
 });
 
 export const UpdateUserResponse = zod.object({
@@ -93,6 +122,14 @@ export const UpdateUserResponse = zod.object({
   phone: zod.string().nullish(),
   isVerified: zod.boolean(),
   joinedAt: zod.coerce.date(),
+  colonyId: zod.number().nullish(),
+  isColonyAdmin: zod.boolean(),
+  isColonyApproved: zod.boolean(),
+  twitterUrl: zod.string().nullish(),
+  facebookUrl: zod.string().nullish(),
+  linkedinUrl: zod.string().nullish(),
+  instagramUrl: zod.string().nullish(),
+  githubUrl: zod.string().nullish(),
 });
 
 /**
@@ -118,6 +155,14 @@ export const ListPostsResponseItem = zod.object({
     phone: zod.string().nullish(),
     isVerified: zod.boolean(),
     joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
   }),
   title: zod.string().nullish(),
   content: zod.string(),
@@ -175,6 +220,14 @@ export const GetPostResponse = zod.object({
     phone: zod.string().nullish(),
     isVerified: zod.boolean(),
     joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
   }),
   title: zod.string().nullish(),
   content: zod.string(),
@@ -234,6 +287,14 @@ export const ListListingsResponseItem = zod.object({
     phone: zod.string().nullish(),
     isVerified: zod.boolean(),
     joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
   }),
   title: zod.string(),
   description: zod.string(),
@@ -295,6 +356,14 @@ export const GetListingResponse = zod.object({
     phone: zod.string().nullish(),
     isVerified: zod.boolean(),
     joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
   }),
   title: zod.string(),
   description: zod.string(),
@@ -342,6 +411,14 @@ export const UpdateListingResponse = zod.object({
     phone: zod.string().nullish(),
     isVerified: zod.boolean(),
     joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
   }),
   title: zod.string(),
   description: zod.string(),
@@ -385,6 +462,14 @@ export const ListEventsResponseItem = zod.object({
     phone: zod.string().nullish(),
     isVerified: zod.boolean(),
     joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
   }),
   title: zod.string(),
   description: zod.string(),
@@ -429,6 +514,14 @@ export const GetEventResponse = zod.object({
     phone: zod.string().nullish(),
     isVerified: zod.boolean(),
     joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
   }),
   title: zod.string(),
   description: zod.string(),
@@ -469,6 +562,14 @@ export const ListAlertsResponseItem = zod.object({
     phone: zod.string().nullish(),
     isVerified: zod.boolean(),
     joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
   }),
   title: zod.string(),
   description: zod.string(),
@@ -508,6 +609,14 @@ export const ListResourcesResponseItem = zod.object({
     phone: zod.string().nullish(),
     isVerified: zod.boolean(),
     joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
   }),
   title: zod.string(),
   description: zod.string(),
@@ -583,6 +692,14 @@ export const ListCommentsResponseItem = zod.object({
     phone: zod.string().nullish(),
     isVerified: zod.boolean(),
     joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
   }),
   content: zod.string(),
   createdAt: zod.coerce.date(),
@@ -622,6 +739,14 @@ export const ListConversationsResponseItem = zod.object({
     phone: zod.string().nullish(),
     isVerified: zod.boolean(),
     joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
   }),
   lastMessage: zod.object({
     id: zod.number(),
@@ -680,4 +805,138 @@ export const QueryAiAssistantBody = zod.object({
 
 export const QueryAiAssistantResponse = zod.object({
   response: zod.string(),
+});
+
+/**
+ * @summary List all colonies
+ */
+export const ListColoniesResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  address: zod.string(),
+  createdById: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+export const ListColoniesResponse = zod.array(ListColoniesResponseItem);
+
+/**
+ * @summary Create a new colony
+ */
+export const CreateColonyBody = zod.object({
+  name: zod.string(),
+  description: zod.string(),
+  address: zod.string(),
+});
+
+/**
+ * @summary Join a colony
+ */
+export const JoinColonyBody = zod.object({
+  colonyId: zod.number(),
+});
+
+export const JoinColonyResponse = zod.object({
+  id: zod.number(),
+  replitId: zod.string(),
+  name: zod.string(),
+  username: zod.string(),
+  bio: zod.string().nullish(),
+  apartment: zod.string().nullish(),
+  avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  isVerified: zod.boolean(),
+  joinedAt: zod.coerce.date(),
+  colonyId: zod.number().nullish(),
+  isColonyAdmin: zod.boolean(),
+  isColonyApproved: zod.boolean(),
+  twitterUrl: zod.string().nullish(),
+  facebookUrl: zod.string().nullish(),
+  linkedinUrl: zod.string().nullish(),
+  instagramUrl: zod.string().nullish(),
+  githubUrl: zod.string().nullish(),
+});
+
+/**
+ * @summary List pending members for my colony (admin only)
+ */
+export const ListPendingMembersResponseItem = zod.object({
+  id: zod.number(),
+  replitId: zod.string(),
+  name: zod.string(),
+  username: zod.string(),
+  bio: zod.string().nullish(),
+  apartment: zod.string().nullish(),
+  avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  isVerified: zod.boolean(),
+  joinedAt: zod.coerce.date(),
+  colonyId: zod.number().nullish(),
+  isColonyAdmin: zod.boolean(),
+  isColonyApproved: zod.boolean(),
+  twitterUrl: zod.string().nullish(),
+  facebookUrl: zod.string().nullish(),
+  linkedinUrl: zod.string().nullish(),
+  instagramUrl: zod.string().nullish(),
+  githubUrl: zod.string().nullish(),
+});
+export const ListPendingMembersResponse = zod.array(
+  ListPendingMembersResponseItem,
+);
+
+/**
+ * @summary Verify/approve a pending colony member (admin only)
+ */
+export const VerifyColonyMemberBody = zod.object({
+  memberId: zod.number(),
+});
+
+export const VerifyColonyMemberResponse = zod.object({
+  id: zod.number(),
+  replitId: zod.string(),
+  name: zod.string(),
+  username: zod.string(),
+  bio: zod.string().nullish(),
+  apartment: zod.string().nullish(),
+  avatarUrl: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  isVerified: zod.boolean(),
+  joinedAt: zod.coerce.date(),
+  colonyId: zod.number().nullish(),
+  isColonyAdmin: zod.boolean(),
+  isColonyApproved: zod.boolean(),
+  twitterUrl: zod.string().nullish(),
+  facebookUrl: zod.string().nullish(),
+  linkedinUrl: zod.string().nullish(),
+  instagramUrl: zod.string().nullish(),
+  githubUrl: zod.string().nullish(),
+});
+
+/**
+ * @summary List all hostel listings
+ */
+export const ListHostelsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  address: zod.string(),
+  description: zod.string(),
+  contactInfo: zod.string(),
+  price: zod.number(),
+  colonyId: zod.number(),
+  createdById: zod.number(),
+  isAvailable: zod.boolean(),
+  createdAt: zod.coerce.date(),
+});
+export const ListHostelsResponse = zod.array(ListHostelsResponseItem);
+
+/**
+ * @summary Add a hostel listing
+ */
+export const CreateHostelBody = zod.object({
+  name: zod.string(),
+  address: zod.string(),
+  description: zod.string(),
+  contactInfo: zod.string(),
+  price: zod.number(),
+  colonyId: zod.number(),
 });

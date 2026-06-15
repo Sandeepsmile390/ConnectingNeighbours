@@ -15,8 +15,13 @@ import {
   Moon,
   MessageCircle,
   Sparkles,
-  Heart
+  Heart,
+  Milestone,
+  Hotel,
+  BookOpen
 } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { useGetRecentActivity, getGetRecentActivityQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -47,16 +52,91 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user, logout } = useAuth();
   const [location] = useLocation();
 
+  // Notification and Audio Chime Logic
+  const pageLoadTime = useRef(new Date());
+  const seenIds = useRef<Set<string>>(new Set());
+
+  // Poll for recent activity every 5 seconds to generate alerts
+  const { data: recentActivity } = useGetRecentActivity({
+    query: {
+      enabled: !!user,
+      refetchInterval: 5000,
+      queryKey: getGetRecentActivityQueryKey(),
+    }
+  });
+
+  useEffect(() => {
+    // Request permission on load
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!recentActivity || recentActivity.length === 0) return;
+
+    recentActivity.forEach((activity: any) => {
+      const activityTime = new Date(activity.createdAt);
+      if (activityTime > pageLoadTime.current && !seenIds.current.has(activity.id)) {
+        seenIds.current.add(activity.id);
+
+        // Show browser notification
+        if ("Notification" in window && Notification.permission === "granted") {
+          const typeLabel = activity.type.charAt(0).toUpperCase() + activity.type.slice(1);
+          new Notification(`New ${typeLabel}: ${activity.title}`, {
+            body: `${activity.actorName}: ${activity.description}`,
+          });
+
+          // Play programmatic high-quality notification chime
+          try {
+            const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+            const audioCtx = new AudioContextClass();
+            const now = audioCtx.currentTime;
+            
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = "sine";
+            osc1.frequency.setValueAtTime(880, now);
+            gain1.gain.setValueAtTime(0, now);
+            gain1.gain.linearRampToValueAtTime(0.1, now + 0.03);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.45);
+
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = "sine";
+            osc2.frequency.setValueAtTime(1109.73, now + 0.08);
+            gain2.gain.setValueAtTime(0, now + 0.08);
+            gain2.gain.linearRampToValueAtTime(0.08, now + 0.11);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.start(now + 0.08);
+            osc2.stop(now + 0.55);
+          } catch (e) {
+            console.warn("Failed to play notification audio chime", e);
+          }
+        }
+      }
+    });
+  }, [recentActivity]);
+
   const navigation = [
     { name: "Home", href: "/", icon: Home },
     { name: "Feed", href: "/feed", icon: MessageSquare },
     { name: "Messages", href: "/chat", icon: MessageCircle },
+    { name: "Colony Hub", href: "/colonies", icon: Milestone },
     { name: "Marketplace", href: "/marketplace", icon: ShoppingBag },
+    { name: "Hostels", href: "/hostels", icon: Hotel },
     { name: "Events", href: "/events", icon: Calendar },
     { name: "Alerts", href: "/alerts", icon: AlertTriangle },
     { name: "Resources", href: "/resources", icon: HeartHandshake },
     { name: "Members", href: "/members", icon: Users },
     { name: "AI Guide", href: "/assistant", icon: Sparkles },
+    { name: "Guidelines", href: "/guidelines", icon: BookOpen },
     { name: "Feedback", href: "/feedback", icon: Heart },
   ];
 

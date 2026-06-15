@@ -647,6 +647,131 @@ paths:
               schema:
                 $ref: "#/components/schemas/AiQueryResponse"
 
+  /colonies:
+    get:
+      operationId: listColonies
+      tags: [users]
+      summary: List all colonies
+      responses:
+        "200":
+          description: List of colonies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Colony"
+    post:
+      operationId: createColony
+      tags: [users]
+      summary: Create a new colony
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateColonyBody"
+      responses:
+        "201":
+          description: Colony created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Colony"
+
+  /colonies/join:
+    post:
+      operationId: joinColony
+      tags: [users]
+      summary: Join a colony
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                colonyId:
+                  type: integer
+              required: [colonyId]
+      responses:
+        "200":
+          description: Colony joined, pending approval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /colonies/pending-members:
+    get:
+      operationId: listPendingMembers
+      tags: [users]
+      summary: List pending members for my colony (admin only)
+      responses:
+        "200":
+          description: List of pending members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /colonies/verify-member:
+    post:
+      operationId: verifyColonyMember
+      tags: [users]
+      summary: Verify/approve a pending colony member (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                memberId:
+                  type: integer
+              required: [memberId]
+      responses:
+        "200":
+          description: Member verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /hostels:
+    get:
+      operationId: listHostels
+      tags: [users]
+      summary: List all hostel listings
+      responses:
+        "200":
+          description: List of hostels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hostel"
+    post:
+      operationId: createHostel
+      tags: [users]
+      summary: Add a hostel listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHostelBody"
+      responses:
+        "201":
+          description: Hostel listing created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hostel"
+
 components:
   schemas:
     HealthStatus:
@@ -691,7 +816,29 @@ components:
         joinedAt:
           type: string
           format: date-time
-      required: [id, replitId, name, username, isVerified, joinedAt]
+        colonyId:
+          type: integer
+          nullable: true
+        isColonyAdmin:
+          type: boolean
+        isColonyApproved:
+          type: boolean
+        twitterUrl:
+          type: string
+          nullable: true
+        facebookUrl:
+          type: string
+          nullable: true
+        linkedinUrl:
+          type: string
+          nullable: true
+        instagramUrl:
+          type: string
+          nullable: true
+        githubUrl:
+          type: string
+          nullable: true
+      required: [id, replitId, name, username, isVerified, joinedAt, isColonyAdmin, isColonyApproved]
 
     UpdateUserBody:
       type: object
@@ -705,6 +852,16 @@ components:
         phone:
           type: string
         avatarUrl:
+          type: string
+        twitterUrl:
+          type: string
+        facebookUrl:
+          type: string
+        linkedinUrl:
+          type: string
+        instagramUrl:
+          type: string
+        githubUrl:
           type: string
 
     Post:
@@ -1097,3 +1254,75 @@ components:
         response:
           type: string
       required: [response]
+
+    Colony:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+        createdById:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, description, address, createdById, createdAt]
+
+    CreateColonyBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+      required: [name, description, address]
+
+    Hostel:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        address:
+          type: string
+        description:
+          type: string
+        contactInfo:
+          type: string
+        price:
+          type: integer
+        colonyId:
+          type: integer
+        createdById:
+          type: integer
+        isAvailable:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, address, description, contactInfo, price, colonyId, createdById, isAvailable, createdAt]
+
+    CreateHostelBody:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        description:
+          type: string
+        contactInfo:
+          type: string
+        price:
+          type: integer
+        colonyId:
+          type: integer
+      required: [name, address, description, contactInfo, price, colonyId]

@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon, Twitter, Facebook, Linkedin, Instagram, Github } from "lucide-react";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -20,6 +20,11 @@ const profileSchema = z.object({
   phone: z.string().optional(),
   bio: z.string().max(160, "Bio must be less than 160 characters").optional(),
   avatarUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+  twitterUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+  facebookUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+  linkedinUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+  instagramUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+  githubUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
 });
 
 export default function Profile() {
@@ -38,6 +43,11 @@ export default function Profile() {
       phone: "",
       bio: "",
       avatarUrl: "",
+      twitterUrl: "",
+      facebookUrl: "",
+      linkedinUrl: "",
+      instagramUrl: "",
+      githubUrl: "",
     },
   });
 
@@ -51,6 +61,11 @@ export default function Profile() {
         phone: user.phone || "",
         bio: user.bio || "",
         avatarUrl: user.avatarUrl || "",
+        twitterUrl: user.twitterUrl || "",
+        facebookUrl: user.facebookUrl || "",
+        linkedinUrl: user.linkedinUrl || "",
+        instagramUrl: user.instagramUrl || "",
+        githubUrl: user.githubUrl || "",
       });
       initialized.current = true;
     }
@@ -179,6 +194,98 @@ export default function Profile() {
                       </FormItem>
                     )}
                   />
+
+                  {/* Social Profiles Grid */}
+                  <div className="space-y-4 pt-4 border-t">
+                    <h3 className="text-sm font-semibold text-foreground">Social Profiles</h3>
+                    
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="twitterUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-1.5 text-xs">
+                              <Twitter className="h-3.5 w-3.5 text-sky-500" />
+                              Twitter / X URL
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="https://x.com/username" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="facebookUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-1.5 text-xs">
+                              <Facebook className="h-3.5 w-3.5 text-blue-600" />
+                              Facebook URL
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="https://facebook.com/username" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="linkedinUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-1.5 text-xs">
+                              <Linkedin className="h-3.5 w-3.5 text-blue-700" />
+                              LinkedIn URL
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="https://linkedin.com/in/username" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="instagramUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-1.5 text-xs">
+                              <Instagram className="h-3.5 w-3.5 text-pink-600" />
+                              Instagram URL
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="https://instagram.com/username" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="githubUrl"
+                        render={({ field }) => (
+                          <FormItem className="sm:col-span-2">
+                            <FormLabel className="flex items-center gap-1.5 text-xs">
+                              <Github className="h-3.5 w-3.5 text-foreground" />
+                              GitHub URL
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="https://github.com/username" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
 
                   <div className="pt-4 flex justify-between items-center">
                     <Button type="submit" disabled={updateUser.isPending}>

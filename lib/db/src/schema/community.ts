@@ -9,6 +9,15 @@ export const alertSeverityEnum = pgEnum("alert_severity", ["low", "medium", "hig
 export const resourceTypeEnum = pgEnum("resource_type", ["ride", "item", "service", "childcare"]);
 export const feedbackCategoryEnum = pgEnum("feedback_category", ["bug", "suggestion", "complaint", "other"]);
 
+export const coloniesTable = pgTable("colonies", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  description: text("description").notNull(),
+  address: varchar("address", { length: 255 }).notNull(),
+  createdById: integer("created_by_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const neighborhoodUsersTable = pgTable("neighborhood_users", {
   id: serial("id").primaryKey(),
   replitId: varchar("replit_id", { length: 255 }).notNull().unique(),
@@ -20,6 +29,14 @@ export const neighborhoodUsersTable = pgTable("neighborhood_users", {
   phone: varchar("phone", { length: 50 }),
   isVerified: boolean("is_verified").notNull().default(false),
   joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+  colonyId: integer("colony_id").references(() => coloniesTable.id),
+  isColonyAdmin: boolean("is_colony_admin").notNull().default(false),
+  isColonyApproved: boolean("is_colony_approved").notNull().default(false),
+  twitterUrl: text("twitter_url"),
+  facebookUrl: text("facebook_url"),
+  linkedinUrl: text("linkedin_url"),
+  instagramUrl: text("instagram_url"),
+  githubUrl: text("github_url"),
 });
 
 export const postsTable = pgTable("posts", {
@@ -119,6 +136,19 @@ export const feedbacksTable = pgTable("feedbacks", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const hostelsTable = pgTable("hostels", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  address: varchar("address", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  contactInfo: varchar("contact_info", { length: 255 }).notNull(),
+  price: integer("price").notNull(),
+  colonyId: integer("colony_id").notNull().references(() => coloniesTable.id, { onDelete: "cascade" }),
+  createdById: integer("created_by_id").notNull().references(() => neighborhoodUsersTable.id),
+  isAvailable: boolean("is_available").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const insertNeighborhoodUserSchema = createInsertSchema(neighborhoodUsersTable).omit({ id: true, joinedAt: true });
 export const insertPostSchema = createInsertSchema(postsTable).omit({ id: true, createdAt: true, likesCount: true, commentsCount: true });
 export const insertListingSchema = createInsertSchema(listingsTable).omit({ id: true, createdAt: true });
@@ -128,6 +158,8 @@ export const insertResourceSchema = createInsertSchema(resourcesTable).omit({ id
 export const insertCommentSchema = createInsertSchema(commentsTable).omit({ id: true, createdAt: true });
 export const insertMessageSchema = createInsertSchema(messagesTable).omit({ id: true, createdAt: true, isRead: true });
 export const insertFeedbackSchema = createInsertSchema(feedbacksTable).omit({ id: true, createdAt: true });
+export const insertColonySchema = createInsertSchema(coloniesTable).omit({ id: true, createdAt: true });
+export const insertHostelSchema = createInsertSchema(hostelsTable).omit({ id: true, createdAt: true });
 
 export type NeighborhoodUser = typeof neighborhoodUsersTable.$inferSelect;
 export type Post = typeof postsTable.$inferSelect;
@@ -138,5 +170,7 @@ export type Resource = typeof resourcesTable.$inferSelect;
 export type Comment = typeof commentsTable.$inferSelect;
 export type Message = typeof messagesTable.$inferSelect;
 export type Feedback = typeof feedbacksTable.$inferSelect;
+export type Colony = typeof coloniesTable.$inferSelect;
+export type Hostel = typeof hostelsTable.$inferSelect;
 
 
