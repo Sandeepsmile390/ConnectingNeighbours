@@ -10,7 +10,7 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 import { authMiddleware } from "./middlewares/authMiddleware";
 
-const app: Express = express();
+const app = express();
 
 // Set up security headers
 app.use(
@@ -78,7 +78,7 @@ if (process.env.NODE_ENV === "production") {
       immutable: true,
     })
   );
-  app.get("*", (req, res) => {
+  app.get("*", (req: any, res: any) => {
     if (req.path.startsWith("/api")) {
       res.status(404).json({ error: "API route not found" });
       return;
