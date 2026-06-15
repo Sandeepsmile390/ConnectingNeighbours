@@ -60,6 +60,21 @@ router.post("/colonies/join", async (req, res) => {
   try {
     const body = JoinColonyBody.parse(req.body);
 
+    if (body.colonyId === 0) {
+      // Leave current colony
+      const [updatedUser] = await db.update(neighborhoodUsersTable)
+        .set({
+          colonyId: null,
+          isColonyAdmin: false,
+          isColonyApproved: false,
+          isVerified: false,
+        })
+        .where(eq(neighborhoodUsersTable.id, nbUser.id))
+        .returning();
+      res.json(updatedUser);
+      return;
+    }
+
     // Verify colony exists
     const [colony] = await db.select().from(coloniesTable).where(eq(coloniesTable.id, body.colonyId)).limit(1);
     if (!colony) {

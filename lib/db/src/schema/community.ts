@@ -124,6 +124,11 @@ export const messagesTable = pgTable("messages", {
   receiverId: integer("receiver_id").notNull().references(() => neighborhoodUsersTable.id),
   content: text("content").notNull(),
   isRead: boolean("is_read").notNull().default(false),
+  isEdited: boolean("is_edited").notNull().default(false),
+  isDeleted: boolean("is_deleted").notNull().default(false),
+  messageType: varchar("message_type", { length: 50 }).notNull().default("text"),
+  fileUrl: text("file_url"),
+  fileName: varchar("file_name", { length: 255 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

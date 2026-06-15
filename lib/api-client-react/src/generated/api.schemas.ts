@@ -317,12 +317,20 @@ export interface Message {
   receiverId: number;
   content: string;
   isRead: boolean;
+  isEdited: boolean;
+  isDeleted: boolean;
+  messageType: string;
+  fileUrl?: string | null;
+  fileName?: string | null;
   createdAt: string;
 }
 
 export interface CreateMessageBody {
   receiverId: number;
   content: string;
+  messageType?: string;
+  fileUrl?: string | null;
+  fileName?: string | null;
 }
 
 export interface Conversation {
@@ -444,6 +452,10 @@ export const ListResourcesType = {
   service: "service",
   childcare: "childcare",
 } as const;
+
+export type EditMessageBody = {
+  content: string;
+};
 
 export type JoinColonyBody = {
   colonyId: number;

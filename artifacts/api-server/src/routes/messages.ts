@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, messagesTable, neighborhoodUsersTable, eq, desc, and, or } from "@workspace/db";
-import { SendMessageBody } from "@workspace/api-zod";
+import { SendMessageBody, EditMessageBody, EditMessageParams, DeleteMessageParams } from "@workspace/api-zod";
 import { getOrCreateNeighborhoodUser } from "./users.js";
 
 const router = Router();
@@ -47,6 +47,11 @@ router.get("/messages/conversations", async (req, res) => {
           receiverId: msg.receiverId,
           content: msg.content,
           isRead: msg.isRead,
+          isEdited: msg.isEdited,
+          isDeleted: msg.isDeleted,
+          messageType: msg.messageType,
+          fileUrl: msg.fileUrl,
+          fileName: msg.fileName,
           createdAt: msg.createdAt,
         },
         unreadCount: 0,
@@ -119,6 +124,9 @@ router.post("/messages", async (req, res) => {
     senderId: myId,
     receiverId: body.receiverId,
     content: body.content,
+    messageType: body.messageType || "text",
+    fileUrl: body.fileUrl || null,
+    fileName: body.fileName || null,
   }).returning();
 
   res.status(201).json({
@@ -127,7 +135,90 @@ router.post("/messages", async (req, res) => {
     receiverId: msg.receiverId,
     content: msg.content,
     isRead: msg.isRead,
+    isEdited: msg.isEdited,
+    isDeleted: msg.isDeleted,
+    messageType: msg.messageType,
+    fileUrl: msg.fileUrl,
+    fileName: msg.fileName,
     createdAt: msg.createdAt,
+  });
+});
+
+// PATCH /messages/:messageId - Edit a message
+router.patch("/messages/:messageId", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  const myId = nbUser.id;
+  const params = EditMessageParams.parse({ messageId: req.params.messageId });
+  const body = EditMessageBody.parse(req.body);
+
+  // Retrieve message to check ownership
+  const [existingMsg] = await db.select().from(messagesTable).where(eq(messagesTable.id, params.messageId)).limit(1);
+  if (!existingMsg) { res.status(404).json({ error: "Message not found" }); return; }
+  if (existingMsg.senderId !== myId) { res.status(403).json({ error: "Forbidden: You can only edit your own messages" }); return; }
+  if (existingMsg.isDeleted) { res.status(400).json({ error: "Cannot edit a deleted message" }); return; }
+
+  const [updatedMsg] = await db.update(messagesTable)
+    .set({
+      content: body.content,
+      isEdited: true,
+    })
+    .where(eq(messagesTable.id, params.messageId))
+    .returning();
+
+  res.json({
+    id: updatedMsg.id,
+    senderId: updatedMsg.senderId,
+    receiverId: updatedMsg.receiverId,
+    content: updatedMsg.content,
+    isRead: updatedMsg.isRead,
+    isEdited: updatedMsg.isEdited,
+    isDeleted: updatedMsg.isDeleted,
+    messageType: updatedMsg.messageType,
+    fileUrl: updatedMsg.fileUrl,
+    fileName: updatedMsg.fileName,
+    createdAt: updatedMsg.createdAt,
+  });
+});
+
+// DELETE /messages/:messageId - Soft delete a message (WhatsApp style)
+router.delete("/messages/:messageId", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  const myId = nbUser.id;
+  const params = DeleteMessageParams.parse({ messageId: req.params.messageId });
+
+  // Retrieve message to check ownership
+  const [existingMsg] = await db.select().from(messagesTable).where(eq(messagesTable.id, params.messageId)).limit(1);
+  if (!existingMsg) { res.status(404).json({ error: "Message not found" }); return; }
+  if (existingMsg.senderId !== myId) { res.status(403).json({ error: "Forbidden: You can only delete your own messages" }); return; }
+
+  const [deletedMsg] = await db.update(messagesTable)
+    .set({
+      content: "This message was deleted",
+      isDeleted: true,
+      fileUrl: null,
+      fileName: null,
+    })
+    .where(eq(messagesTable.id, params.messageId))
+    .returning();
+
+  res.json({
+    id: deletedMsg.id,
+    senderId: deletedMsg.senderId,
+    receiverId: deletedMsg.receiverId,
+    content: deletedMsg.content,
+    isRead: deletedMsg.isRead,
+    isEdited: deletedMsg.isEdited,
+    isDeleted: deletedMsg.isDeleted,
+    messageType: deletedMsg.messageType,
+    fileUrl: deletedMsg.fileUrl,
+    fileName: deletedMsg.fileName,
+    createdAt: deletedMsg.createdAt,
   });
 });
 

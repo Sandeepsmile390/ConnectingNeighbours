@@ -609,6 +609,53 @@ paths:
               schema:
                 $ref: "#/components/schemas/Message"
 
+  /messages/{messageId}:
+    patch:
+      operationId: editMessage
+      tags: [messages]
+      summary: Edit a direct message
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+              required: [content]
+      responses:
+        "200":
+          description: Edited message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+    delete:
+      operationId: deleteMessage
+      tags: [messages]
+      summary: Delete a direct message
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted message status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
   /feedback:
     post:
       operationId: submitFeedback
@@ -1185,10 +1232,22 @@ components:
           type: string
         isRead:
           type: boolean
+        isEdited:
+          type: boolean
+        isDeleted:
+          type: boolean
+        messageType:
+          type: string
+        fileUrl:
+          type: string
+          nullable: true
+        fileName:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time
-      required: [id, senderId, receiverId, content, isRead, createdAt]
+      required: [id, senderId, receiverId, content, isRead, isEdited, isDeleted, messageType, createdAt]
 
     CreateMessageBody:
       type: object
@@ -1197,6 +1256,14 @@ components:
           type: integer
         content:
           type: string
+        messageType:
+          type: string
+        fileUrl:
+          type: string
+          nullable: true
+        fileName:
+          type: string
+          nullable: true
       required: [receiverId, content]
 
     Conversation:

@@ -754,6 +754,11 @@ export const ListConversationsResponseItem = zod.object({
     receiverId: zod.number(),
     content: zod.string(),
     isRead: zod.boolean(),
+    isEdited: zod.boolean(),
+    isDeleted: zod.boolean(),
+    messageType: zod.string(),
+    fileUrl: zod.string().nullish(),
+    fileName: zod.string().nullish(),
     createdAt: zod.coerce.date(),
   }),
   unreadCount: zod.number(),
@@ -775,6 +780,11 @@ export const ListMessagesResponseItem = zod.object({
   receiverId: zod.number(),
   content: zod.string(),
   isRead: zod.boolean(),
+  isEdited: zod.boolean(),
+  isDeleted: zod.boolean(),
+  messageType: zod.string(),
+  fileUrl: zod.string().nullish(),
+  fileName: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 export const ListMessagesResponse = zod.array(ListMessagesResponseItem);
@@ -785,6 +795,55 @@ export const ListMessagesResponse = zod.array(ListMessagesResponseItem);
 export const SendMessageBody = zod.object({
   receiverId: zod.number(),
   content: zod.string(),
+  messageType: zod.string().optional(),
+  fileUrl: zod.string().nullish(),
+  fileName: zod.string().nullish(),
+});
+
+/**
+ * @summary Edit a direct message
+ */
+export const EditMessageParams = zod.object({
+  messageId: zod.coerce.number(),
+});
+
+export const EditMessageBody = zod.object({
+  content: zod.string(),
+});
+
+export const EditMessageResponse = zod.object({
+  id: zod.number(),
+  senderId: zod.number(),
+  receiverId: zod.number(),
+  content: zod.string(),
+  isRead: zod.boolean(),
+  isEdited: zod.boolean(),
+  isDeleted: zod.boolean(),
+  messageType: zod.string(),
+  fileUrl: zod.string().nullish(),
+  fileName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a direct message
+ */
+export const DeleteMessageParams = zod.object({
+  messageId: zod.coerce.number(),
+});
+
+export const DeleteMessageResponse = zod.object({
+  id: zod.number(),
+  senderId: zod.number(),
+  receiverId: zod.number(),
+  content: zod.string(),
+  isRead: zod.boolean(),
+  isEdited: zod.boolean(),
+  isDeleted: zod.boolean(),
+  messageType: zod.string(),
+  fileUrl: zod.string().nullish(),
+  fileName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
 });
 
 /**

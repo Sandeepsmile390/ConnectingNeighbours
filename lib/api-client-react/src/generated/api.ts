@@ -35,6 +35,7 @@ import type {
   CreateMessageBody,
   CreatePostBody,
   CreateResourceBody,
+  EditMessageBody,
   ErrorResponse,
   Event,
   Feedback,
@@ -2701,6 +2702,177 @@ export const useSendMessage = <
   TContext
 > => {
   return useMutation(getSendMessageMutationOptions(options));
+};
+
+/**
+ * @summary Edit a direct message
+ */
+export const getEditMessageUrl = (messageId: number) => {
+  return `/api/messages/${messageId}`;
+};
+
+export const editMessage = async (
+  messageId: number,
+  editMessageBody: EditMessageBody,
+  options?: RequestInit,
+): Promise<Message> => {
+  return customFetch<Message>(getEditMessageUrl(messageId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(editMessageBody),
+  });
+};
+
+export const getEditMessageMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof editMessage>>,
+    TError,
+    { messageId: number; data: BodyType<EditMessageBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof editMessage>>,
+  TError,
+  { messageId: number; data: BodyType<EditMessageBody> },
+  TContext
+> => {
+  const mutationKey = ["editMessage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof editMessage>>,
+    { messageId: number; data: BodyType<EditMessageBody> }
+  > = (props) => {
+    const { messageId, data } = props ?? {};
+
+    return editMessage(messageId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type EditMessageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof editMessage>>
+>;
+export type EditMessageMutationBody = BodyType<EditMessageBody>;
+export type EditMessageMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Edit a direct message
+ */
+export const useEditMessage = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof editMessage>>,
+    TError,
+    { messageId: number; data: BodyType<EditMessageBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof editMessage>>,
+  TError,
+  { messageId: number; data: BodyType<EditMessageBody> },
+  TContext
+> => {
+  return useMutation(getEditMessageMutationOptions(options));
+};
+
+/**
+ * @summary Delete a direct message
+ */
+export const getDeleteMessageUrl = (messageId: number) => {
+  return `/api/messages/${messageId}`;
+};
+
+export const deleteMessage = async (
+  messageId: number,
+  options?: RequestInit,
+): Promise<Message> => {
+  return customFetch<Message>(getDeleteMessageUrl(messageId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteMessageMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteMessage>>,
+    TError,
+    { messageId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteMessage>>,
+  TError,
+  { messageId: number },
+  TContext
+> => {
+  const mutationKey = ["deleteMessage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteMessage>>,
+    { messageId: number }
+  > = (props) => {
+    const { messageId } = props ?? {};
+
+    return deleteMessage(messageId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteMessageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteMessage>>
+>;
+
+export type DeleteMessageMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a direct message
+ */
+export const useDeleteMessage = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteMessage>>,
+    TError,
+    { messageId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteMessage>>,
+  TError,
+  { messageId: number },
+  TContext
+> => {
+  return useMutation(getDeleteMessageMutationOptions(options));
 };
 
 /**

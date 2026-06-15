@@ -13,6 +13,7 @@ const MENU_ITEMS: { label: string; icon: keyof typeof Feather.glyphMap; route: s
   { label: "Members", icon: "users", route: "/members", desc: "Browse colony residents" },
   { label: "Colony Hub", icon: "map-pin", route: "/colonies", desc: "Manage your colony residency" },
   { label: "Safety Alerts", icon: "alert-triangle", route: "/alerts", desc: "View & report incidents" },
+  { label: "Private Messages", icon: "message-square", route: "/chat", desc: "Send direct messages to neighbors" },
   { label: "Shared Resources", icon: "heart", route: "/resources", desc: "Community sharing network" },
   { label: "Hostels & PG Rentals", icon: "home", route: "/hostels", desc: "Explore local accommodations" },
   { label: "Community Guidelines", icon: "book-open", route: "/guidelines", desc: "Read our rules and terms" },
