@@ -1,6 +1,6 @@
 import * as oidc from "openid-client";
 import { type Request, type Response, type NextFunction } from "express";
-import type { AuthUser } from "../lib/auth";
+import type { AuthUser } from "../lib/auth.js";
 import {
   clearSession,
   getOidcConfig,
@@ -8,7 +8,7 @@ import {
   getSession,
   updateSession,
   type SessionData,
-} from "../lib/auth";
+} from "../lib/auth.js";
 
 declare global {
   namespace Express {
@@ -16,11 +16,10 @@ declare global {
 
     interface Request {
       isAuthenticated(): this is AuthedRequest;
-
       user?: User | undefined;
     }
 
-    export interface AuthedRequest {
+    interface AuthedRequest extends Request {
       user: User;
     }
   }
@@ -54,13 +53,13 @@ async function refreshIfExpired(
 }
 
 export async function authMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
+  req: any,
+  res: any,
+  next: any,
 ) {
-  req.isAuthenticated = function (this: Request) {
+  req.isAuthenticated = function (this: any) {
     return this.user != null;
-  } as Request["isAuthenticated"];
+  };
 
   const sid = getSessionId(req);
   if (!sid) {
