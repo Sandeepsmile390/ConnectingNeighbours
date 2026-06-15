@@ -1,7 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
-import { db } from "@workspace/db";
-import { sql } from "drizzle-orm";
+import { db, sql } from "@workspace/db";
 
 const rawPort = process.env["PORT"];
 

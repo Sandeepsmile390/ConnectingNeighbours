@@ -1,9 +1,9 @@
 import { Router, type IRouter } from "express";
 import { db, alertsTable } from "@workspace/db";
 import { CreateAlertBody } from "@workspace/api-zod";
-import { getOrCreateNeighborhoodUser } from "./users";
+import { getOrCreateNeighborhoodUser } from "./users.js";
 
-const router: IRouter = Router();
+const router = Router();
 
 function formatAlert(a: any, reporter: any) {
   return {

@@ -1,10 +1,9 @@
 import { Router, type IRouter } from "express";
-import { db, eventsTable, eventRsvpsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { db, eventsTable, eventRsvpsTable, eq, and } from "@workspace/db";
 import { CreateEventBody } from "@workspace/api-zod";
-import { getOrCreateNeighborhoodUser } from "./users";
+import { getOrCreateNeighborhoodUser } from "./users.js";
 
-const router: IRouter = Router();
+const router = Router();
 
 function formatEvent(e: any, organizer: any, isRsvpedByMe: boolean) {
   return {

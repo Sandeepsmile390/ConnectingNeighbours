@@ -1,10 +1,9 @@
 import { Router, type IRouter } from "express";
-import { db, postsTable, neighborhoodUsersTable, postLikesTable } from "@workspace/db";
-import { eq, desc, and } from "drizzle-orm";
+import { db, postsTable, neighborhoodUsersTable, postLikesTable, eq, desc, and } from "@workspace/db";
 import { CreatePostBody, ListPostsQueryParams } from "@workspace/api-zod";
-import { getOrCreateNeighborhoodUser } from "./users";
+import { getOrCreateNeighborhoodUser } from "./users.js";
 
-const router: IRouter = Router();
+const router = Router();
 
 function formatPost(post: any, author: any, isLikedByMe: boolean) {
   return {

@@ -1,10 +1,9 @@
 import { Router, type IRouter } from "express";
-import { db, listingsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, listingsTable, eq } from "@workspace/db";
 import { CreateListingBody, ListListingsQueryParams, UpdateListingBody } from "@workspace/api-zod";
-import { getOrCreateNeighborhoodUser } from "./users";
+import { getOrCreateNeighborhoodUser } from "./users.js";
 
-const router: IRouter = Router();
+const router = Router();
 
 function formatListing(l: any, seller: any) {
   return {

@@ -12,7 +12,7 @@ import {
   SESSION_TTL,
   ISSUER_URL,
   type SessionData,
-} from "../lib/auth";
+} from "../lib/auth.js";
 
 const GetCurrentAuthUserResponse = z.object({
   user: z.object({
@@ -42,7 +42,7 @@ const LogoutMobileSessionResponse = z.object({
 
 const OIDC_COOKIE_TTL = 10 * 60 * 1000;
 
-const router: IRouter = Router();
+const router = Router();
 
 function getOrigin(req: Request): string {
   if (process.env.REPLIT_DOMAINS) {

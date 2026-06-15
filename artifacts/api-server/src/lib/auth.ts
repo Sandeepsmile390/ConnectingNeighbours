@@ -1,8 +1,7 @@
 import * as client from "openid-client";
 import crypto from "crypto";
 import { type Request, type Response } from "express";
-import { db, sessionsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, sessionsTable, eq } from "@workspace/db";
 
 export interface AuthUser {
   id: string;

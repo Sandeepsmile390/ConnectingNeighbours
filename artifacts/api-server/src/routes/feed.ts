@@ -1,8 +1,7 @@
 import { Router, type IRouter } from "express";
-import { db, neighborhoodUsersTable, postsTable, listingsTable, eventsTable, alertsTable, resourcesTable } from "@workspace/db";
-import { eq, desc, sql } from "drizzle-orm";
+import { db, neighborhoodUsersTable, postsTable, listingsTable, eventsTable, alertsTable, resourcesTable, eq, desc, sql } from "@workspace/db";
 
-const router: IRouter = Router();
+const router = Router();
 
 router.get("/feed/stats", async (req, res) => {
   const [totalMembers] = await db.select({ count: sql<number>`count(*)` }).from(neighborhoodUsersTable);

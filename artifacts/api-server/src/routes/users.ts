@@ -1,9 +1,8 @@
 import { Router, type IRouter } from "express";
-import { db, neighborhoodUsersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, neighborhoodUsersTable, eq } from "@workspace/db";
 import { UpdateUserBody } from "@workspace/api-zod";
 
-const router: IRouter = Router();
+const router = Router();
 
 async function getOrCreateNeighborhoodUser(req: any) {
   if (!req.isAuthenticated()) return null;

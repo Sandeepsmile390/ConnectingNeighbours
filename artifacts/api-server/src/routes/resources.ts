@@ -1,10 +1,9 @@
 import { Router, type IRouter } from "express";
-import { db, resourcesTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, resourcesTable, eq } from "@workspace/db";
 import { CreateResourceBody, ListResourcesQueryParams } from "@workspace/api-zod";
-import { getOrCreateNeighborhoodUser } from "./users";
+import { getOrCreateNeighborhoodUser } from "./users.js";
 
-const router: IRouter = Router();
+const router = Router();
 
 function formatResource(r: any, offerer: any) {
   return {
