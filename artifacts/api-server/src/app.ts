@@ -78,7 +78,7 @@ if (process.env.NODE_ENV === "production") {
       immutable: true,
     })
   );
-  app.get("*", (req: any, res: any) => {
+  app.get("/(.*)", (req: any, res: any) => {
     if (req.path.startsWith("/api")) {
       res.status(404).json({ error: "API route not found" });
       return;
