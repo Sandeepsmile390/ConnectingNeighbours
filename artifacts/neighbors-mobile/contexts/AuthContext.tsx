@@ -5,6 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
 
 const AUTH_TOKEN_KEY = "cn_auth_token";
+const DOMAIN = process.env.EXPO_PUBLIC_DOMAIN || "connecting-neighbours-apiserver.vercel.app";
 
 interface AuthUser {
   id: number;
@@ -54,7 +55,7 @@ export function useAuth() {
 async function fetchMe(token: string): Promise<AuthUser | null> {
   try {
     const res = await fetch(
-      `https://${process.env.EXPO_PUBLIC_DOMAIN}/api/auth/me`,
+      `https://${DOMAIN}/api/auth/me`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -104,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async () => {
     const redirectUrl = Linking.createURL("auth-callback");
-    const loginUrl = `https://${process.env.EXPO_PUBLIC_DOMAIN}/api/login?mobile_redirect=${encodeURIComponent(redirectUrl)}`;
+    const loginUrl = `https://${DOMAIN}/api/login?mobile_redirect=${encodeURIComponent(redirectUrl)}`;
 
     const result = await WebBrowser.openAuthSessionAsync(loginUrl, redirectUrl);
     if (result.type !== "success") return;
@@ -122,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (storedToken) {
       try {
         await fetch(
-          `https://${process.env.EXPO_PUBLIC_DOMAIN}/api/mobile-auth/logout`,
+          `https://${DOMAIN}/api/mobile-auth/logout`,
           {
             method: "POST",
             headers: { Authorization: `Bearer ${storedToken}` },

@@ -18,9 +18,8 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Set base URL for all API calls from Expo (outside web proxy)
-if (process.env.EXPO_PUBLIC_DOMAIN) {
-  setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
-}
+const domain = process.env.EXPO_PUBLIC_DOMAIN || "connecting-neighbours-apiserver.vercel.app";
+setBaseUrl(`https://${domain}`);
 
 SplashScreen.preventAutoHideAsync();
 
