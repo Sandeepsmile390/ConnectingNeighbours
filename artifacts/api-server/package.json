@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "pnpm run build && node --env-file=.env --enable-source-maps ./dist/index.mjs",
     "build": "node ./build.mjs",
+    "vercel-build": "echo 'No-op build for serverless deployment'",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
