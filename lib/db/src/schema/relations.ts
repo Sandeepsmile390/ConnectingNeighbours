@@ -8,7 +8,7 @@ import {
   eventRsvpsTable,
   alertsTable,
   resourcesTable,
-} from "./community";
+} from "./community.js";
 
 export const neighborhoodUsersRelations = relations(neighborhoodUsersTable, ({ many }) => ({
   posts: many(postsTable),
