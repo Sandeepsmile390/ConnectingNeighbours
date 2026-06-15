@@ -53,6 +53,18 @@ function RootLayoutNav() {
         name="profile"
         options={{ title: "My Profile", headerBackTitle: "Back" }}
       />
+      <Stack.Screen
+        name="colonies"
+        options={{ title: "Colony Hub", headerBackTitle: "Back" }}
+      />
+      <Stack.Screen
+        name="hostels"
+        options={{ title: "Hostels & PG Rentals", headerBackTitle: "Back" }}
+      />
+      <Stack.Screen
+        name="guidelines"
+        options={{ title: "Community Guidelines", headerBackTitle: "Back" }}
+      />
     </Stack>
   );
 }

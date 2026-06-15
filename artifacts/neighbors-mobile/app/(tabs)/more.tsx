@@ -11,8 +11,11 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const MENU_ITEMS: { label: string; icon: keyof typeof Feather.glyphMap; route: string; desc: string }[] = [
   { label: "Members", icon: "users", route: "/members", desc: "Browse colony residents" },
+  { label: "Colony Hub", icon: "map-pin", route: "/colonies", desc: "Manage your colony residency" },
   { label: "Safety Alerts", icon: "alert-triangle", route: "/alerts", desc: "View & report incidents" },
   { label: "Shared Resources", icon: "heart", route: "/resources", desc: "Community sharing network" },
+  { label: "Hostels & PG Rentals", icon: "home", route: "/hostels", desc: "Explore local accommodations" },
+  { label: "Community Guidelines", icon: "book-open", route: "/guidelines", desc: "Read our rules and terms" },
   { label: "My Profile", icon: "user", route: "/profile", desc: "Edit your neighborhood profile" },
 ];
 
@@ -88,7 +91,7 @@ export default function MoreScreen() {
               styles.menuItem,
               i < MENU_ITEMS.length - 1 ? { borderBottomWidth: 1, borderBottomColor: colors.border } : {},
             ]}
-            onPress={() => router.push(item.route as "/members" | "/alerts" | "/resources" | "/profile")}
+            onPress={() => router.push(item.route as any)}
             activeOpacity={0.7}
           >
             <View style={[styles.menuIconBox, { backgroundColor: colors.primary + "18" }]}>

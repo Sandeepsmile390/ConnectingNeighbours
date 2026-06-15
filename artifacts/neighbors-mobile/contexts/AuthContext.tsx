@@ -17,6 +17,14 @@ interface AuthUser {
   phone?: string | null;
   isVerified: boolean;
   joinedAt: string;
+  colonyId?: number | null;
+  isColonyAdmin?: boolean;
+  isColonyApproved?: boolean;
+  twitterUrl?: string | null;
+  facebookUrl?: string | null;
+  linkedinUrl?: string | null;
+  instagramUrl?: string | null;
+  githubUrl?: string | null;
 }
 
 interface AuthContextValue {
