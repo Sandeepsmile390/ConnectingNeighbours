@@ -32,6 +32,7 @@ export function StatCard({ icon, iconColor, value, label, onPress }: StatCardPro
 const styles = StyleSheet.create({
   card: {
     flex: 1,
+    minWidth: "44%",
     padding: 16,
     borderRadius: 14,
     borderWidth: 1,

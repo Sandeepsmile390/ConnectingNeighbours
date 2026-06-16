@@ -113,7 +113,11 @@ export default function AssistantScreen() {
   const webBotPad = Platform.OS === "web" ? 34 : 0;
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 80}
+    >
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Header Summary */}
         <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.card }]}>

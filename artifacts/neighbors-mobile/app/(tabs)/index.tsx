@@ -639,6 +639,46 @@ export default function HomeScreen() {
           })
         )}
       </View>
+
+      {/* About Section */}
+      <Text style={[styles.sectionTitle, { color: colors.foreground, marginTop: 24, marginBottom: 12 }]}>About Connecting Neighbors</Text>
+      <View style={{ paddingHorizontal: 16, gap: 12, marginBottom: 30 }}>
+        <View style={[styles.aboutCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.aboutNumberBg, { backgroundColor: colors.primary + "12" }]}>
+            <Text style={[styles.aboutNumberText, { color: colors.primary }]}>1</Text>
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={[styles.aboutCardTitle, { color: colors.foreground }]}>What is the portal?</Text>
+            <Text style={[styles.aboutCardText, { color: colors.mutedForeground }]}>
+              A secure digital square for verified residents of our community. It connects neighbors for conversations, local announcements, resources sharing, and direct messaging.
+            </Text>
+          </View>
+        </View>
+
+        <View style={[styles.aboutCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.aboutNumberBg, { backgroundColor: "#8B5CF612" }]}>
+            <Text style={[styles.aboutNumberText, { color: "#8B5CF6" }]}>2</Text>
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={[styles.aboutCardTitle, { color: colors.foreground }]}>What problems does it solve?</Text>
+            <Text style={[styles.aboutCardText, { color: colors.mutedForeground }]}>
+              Shatters physical isolation by making local connections easy, simplifies resource/tool sharing to eliminate waste, and establishes immediate awareness of local safety emergencies.
+            </Text>
+          </View>
+        </View>
+
+        <View style={[styles.aboutCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.aboutNumberBg, { backgroundColor: "#3B82F612" }]}>
+            <Text style={[styles.aboutNumberText, { color: "#3B82F6" }]}>3</Text>
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={[styles.aboutCardTitle, { color: colors.foreground }]}>Why should you use it?</Text>
+            <Text style={[styles.aboutCardText, { color: colors.mutedForeground }]}>
+              Find support when you need a hand, buy or trade items locally with trust, borrow utility tools from verified neighbors, and contribute to building a vibrant, connected environment.
+            </Text>
+          </View>
+        </View>
+      </View>
     </ScrollView>
 
       {/* Notifications Modal */}
@@ -773,4 +813,9 @@ const styles = StyleSheet.create({
   modalInput: { borderWidth: 1, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14, fontSize: 14, fontFamily: "Inter_400Regular" },
   modalButtons: { flexDirection: "row", gap: 10, justifyContent: "flex-end", marginTop: 6 },
   modalBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, borderWidth: 1, alignItems: "center", minWidth: 80 },
+  aboutCard: { flexDirection: "row", gap: 14, padding: 16, borderRadius: 16, borderWidth: 1, alignItems: "flex-start" },
+  aboutNumberBg: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  aboutNumberText: { fontSize: 14, fontWeight: "bold" },
+  aboutCardTitle: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  aboutCardText: { fontSize: 12, lineHeight: 18, fontFamily: "Inter_400Regular" },
 });

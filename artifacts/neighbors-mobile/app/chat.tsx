@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal, Linking
+  KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal, Linking,
+  Clipboard
 } from "react-native";
 import { useColors } from "@/hooks/useColors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -90,6 +91,8 @@ export default function ChatScreen() {
   const [newMessage, setNewMessage] = useState("");
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [contactSearch, setContactSearch] = useState("");
+  const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
+  const [showMessageOptions, setShowMessageOptions] = useState(false);
 
   // Edit/Delete and Voice notes states
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
@@ -334,27 +337,10 @@ export default function ChatScreen() {
   };
 
   const showMessageMenu = (msg: any) => {
-    if (msg.senderId !== currentUser.id || msg.isDeleted) return;
+    if (msg.isDeleted) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Alert.alert(
-      "Message Options",
-      "Choose an action",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Edit Message",
-          onPress: () => {
-            setEditingMessageId(msg.id);
-            setEditingText(msg.content);
-          }
-        },
-        {
-          text: "Delete Message",
-          style: "destructive",
-          onPress: () => handleDelete(msg.id)
-        }
-      ]
-    );
+    setSelectedMessage(msg);
+    setShowMessageOptions(true);
   };
 
   const filteredContacts = users.filter(u =>
@@ -364,7 +350,11 @@ export default function ChatScreen() {
   );
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 80}
+    >
       {activeNeighborId === null ? (
         // Chat Thread List View
         <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -678,6 +668,94 @@ export default function ChatScreen() {
           </View>
         </View>
       )}
+      {/* Custom Message Options Bottom Sheet / Action Sheet */}
+      <Modal
+        visible={showMessageOptions}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowMessageOptions(false);
+          setSelectedMessage(null);
+        }}
+      >
+        <TouchableOpacity 
+          style={styles.actionSheetOverlay} 
+          activeOpacity={1} 
+          onPress={() => {
+            setShowMessageOptions(false);
+            setSelectedMessage(null);
+          }}
+        >
+          <View style={[styles.actionSheetContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.actionSheetHeader}>
+              <View style={[styles.actionSheetIndicator, { backgroundColor: colors.border }]} />
+              <Text style={[styles.actionSheetTitle, { color: colors.foreground }]}>Message Options</Text>
+            </View>
+
+            <View style={[styles.actionSheetBody, { borderColor: colors.border }]}>
+              {selectedMessage && selectedMessage.messageType === "text" && (
+                <TouchableOpacity
+                  style={[styles.actionSheetItem, { borderBottomWidth: 1, borderBottomColor: colors.border }]}
+                  onPress={() => {
+                    Clipboard.setString(selectedMessage.content);
+                    setShowMessageOptions(false);
+                    setSelectedMessage(null);
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Feather name="copy" size={16} color={colors.foreground} style={{ marginRight: 10 }} />
+                  <Text style={[styles.actionSheetText, { color: colors.foreground }]}>Copy Text</Text>
+                </TouchableOpacity>
+              )}
+
+              {selectedMessage && selectedMessage.senderId === currentUser.id && !selectedMessage.isDeleted && (
+                <>
+                  <TouchableOpacity
+                    style={[styles.actionSheetItem, { borderBottomWidth: 1, borderBottomColor: colors.border }]}
+                    onPress={() => {
+                      const msg = selectedMessage;
+                      setShowMessageOptions(false);
+                      setSelectedMessage(null);
+                      setEditingMessageId(msg.id);
+                      setEditingText(msg.content);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Feather name="edit-2" size={16} color={colors.foreground} style={{ marginRight: 10 }} />
+                    <Text style={[styles.actionSheetText, { color: colors.foreground }]}>Edit Message</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.actionSheetItem}
+                    onPress={() => {
+                      const msgId = selectedMessage.id;
+                      setShowMessageOptions(false);
+                      setSelectedMessage(null);
+                      handleDelete(msgId);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Feather name="trash-2" size={16} color={colors.destructive} style={{ marginRight: 10 }} />
+                    <Text style={[styles.actionSheetText, { color: colors.destructive }]}>Delete Message</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.actionSheetCancel, { backgroundColor: colors.muted + "30", borderColor: colors.border }]}
+              onPress={() => {
+                setShowMessageOptions(false);
+                setSelectedMessage(null);
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.actionSheetCancelText, { color: colors.foreground }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -748,4 +826,14 @@ const styles = StyleSheet.create({
   recordingText: { color: "#EF4444", fontSize: 13, fontFamily: "Inter_600SemiBold" },
   input: { flex: 1, borderWidth: 1, borderRadius: 18, paddingHorizontal: 12, paddingVertical: 6, fontSize: 14, maxHeight: 80, fontFamily: "Inter_400Regular" },
   sendBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  actionSheetOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
+  actionSheetContent: { width: "100%", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderBottomWidth: 0, paddingHorizontal: 20, paddingBottom: 30, paddingTop: 12 },
+  actionSheetHeader: { alignItems: "center", marginBottom: 16 },
+  actionSheetIndicator: { width: 40, height: 4, borderRadius: 2, marginBottom: 12 },
+  actionSheetTitle: { fontSize: 16, fontWeight: "bold" },
+  actionSheetBody: { borderRadius: 16, overflow: "hidden", borderWidth: 1, marginBottom: 16 },
+  actionSheetItem: { flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 16 },
+  actionSheetText: { fontSize: 15, fontFamily: "Inter_500Medium" },
+  actionSheetCancel: { paddingVertical: 14, borderRadius: 16, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  actionSheetCancelText: { fontSize: 15, fontWeight: "bold" },
 });

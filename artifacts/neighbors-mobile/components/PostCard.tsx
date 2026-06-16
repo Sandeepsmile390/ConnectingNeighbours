@@ -30,6 +30,7 @@ interface Post {
   content: string;
   category: string;
   likesCount: number;
+  commentsCount: number;
   isLikedByMe: boolean;
   createdAt: string;
 }
@@ -39,9 +40,10 @@ interface PostCardProps {
   currentUserId?: number;
   onLike: (id: number) => void;
   onDelete: (id: number) => void;
+  onComment?: (id: number) => void;
 }
 
-export function PostCard({ post, currentUserId, onLike, onDelete }: PostCardProps) {
+export function PostCard({ post, currentUserId, onLike, onDelete, onComment }: PostCardProps) {
   const colors = useColors();
   const catColor = CATEGORY_COLORS[post.category] ?? "#6366F1";
 
@@ -88,6 +90,12 @@ export function PostCard({ post, currentUserId, onLike, onDelete }: PostCardProp
           <Text style={[styles.footerBtnText, {
             color: post.isLikedByMe ? "#F43F5E" : colors.mutedForeground
           }]}>{post.likesCount}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerBtn} onPress={() => onComment && onComment(post.id)} activeOpacity={0.7}>
+          <Feather name="message-square" size={16} color={colors.mutedForeground} />
+          <Text style={[styles.footerBtnText, { color: colors.mutedForeground }]}>
+            {post.commentsCount}
+          </Text>
         </TouchableOpacity>
         {currentUserId === post.authorId && (
           <TouchableOpacity style={styles.footerBtn} onPress={() => onDelete(post.id)} activeOpacity={0.7}>

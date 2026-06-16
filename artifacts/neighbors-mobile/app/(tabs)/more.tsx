@@ -9,6 +9,7 @@ import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme, ThemeMode } from "../../contexts/ThemeContext";
 import { 
   useListConversations, 
   useListPendingMembers, 
@@ -36,10 +37,12 @@ export default function MoreScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user, isAuthenticated, login, loginDev, logout, refetchUser } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showGoogleAdminPasswordModal, setShowGoogleAdminPasswordModal] = useState(false);
   const [showPromotionPasswordModal, setShowPromotionPasswordModal] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [promotionPasswordInput, setPromotionPasswordInput] = useState("");
 
@@ -377,6 +380,22 @@ export default function MoreScreen() {
                   <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
                 </TouchableOpacity>
               )}
+              <TouchableOpacity 
+                style={[styles.menuItem, { borderBottomWidth: 1, borderBottomColor: colors.border }]} 
+                onPress={() => setShowThemeModal(true)} 
+                activeOpacity={0.7}
+              >
+                <View style={[styles.menuIconBox, { backgroundColor: colors.primary + "18" }]}>
+                  <Feather name={theme === "dark" ? "moon" : theme === "light" ? "sun" : "settings"} size={18} color={colors.primary} />
+                </View>
+                <View style={styles.menuText}>
+                  <Text style={[styles.menuLabel, { color: colors.foreground }]}>Theme Mode</Text>
+                  <Text style={[styles.menuDesc, { color: colors.mutedForeground }]}>
+                    Currently set to: {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              </TouchableOpacity>
               <TouchableOpacity style={styles.menuItem} onPress={handleLogout} activeOpacity={0.7}>
                 <View style={[styles.menuIconBox, { backgroundColor: colors.destructive + "18" }]}>
                   <Feather name="log-out" size={18} color={colors.destructive} />
@@ -555,6 +574,58 @@ export default function MoreScreen() {
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Theme Settings Selector Modal */}
+      <Modal
+        visible={showThemeModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowThemeModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setShowThemeModal(false)}
+        >
+          <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.foreground }]}>Select Theme</Text>
+            <Text style={[styles.modalDesc, { color: colors.mutedForeground, marginBottom: 6 }]}>
+              Choose how Connecting Neighbors appears on your device.
+            </Text>
+
+            {(["light", "dark", "system"] as ThemeMode[]).map((mode) => (
+              <TouchableOpacity
+                key={mode}
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingVertical: 12,
+                  borderBottomWidth: mode !== "system" ? 0.5 : 0,
+                  borderBottomColor: colors.border
+                }}
+                onPress={async () => {
+                  await setTheme(mode);
+                  setShowThemeModal(false);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ 
+                  color: theme === mode ? colors.primary : colors.foreground, 
+                  fontWeight: theme === mode ? "bold" : "normal",
+                  fontSize: 14,
+                  fontFamily: "Inter_500Medium"
+                }}>
+                  {mode === "system" ? "System Default" : mode.charAt(0).toUpperCase() + mode.slice(1)}
+                </Text>
+                {theme === mode && (
+                  <Feather name="check" size={16} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
