@@ -16,6 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { PostCard } from "@/components/PostCard";
 import { EmptyState } from "@/components/EmptyState";
+import { NotificationBell } from "@/components/NotificationBell";
 import * as Haptics from "expo-haptics";
 import { formatDistanceToNow } from "date-fns";
 
@@ -150,15 +151,18 @@ export default function FeedScreen() {
     <View>
       <View style={[styles.topBar, { paddingTop: insets.top + webTopPad + 12 }]}>
         <Text style={[styles.screenTitle, { color: colors.foreground }]}>Community Feed</Text>
-        {isAuthenticated && (
-          <TouchableOpacity
-            style={[styles.newBtn, { backgroundColor: colors.primary }]}
-            onPress={() => setShowCreate(true)}
-            activeOpacity={0.8}
-          >
-            <Feather name="plus" size={18} color="#fff" />
-          </TouchableOpacity>
-        )}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <NotificationBell />
+          {isAuthenticated && (
+            <TouchableOpacity
+              style={[styles.newBtn, { backgroundColor: colors.primary }]}
+              onPress={() => setShowCreate(true)}
+              activeOpacity={0.8}
+            >
+              <Feather name="plus" size={18} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
       <ScrollView
         horizontal showsHorizontalScrollIndicator={false}

@@ -90,6 +90,10 @@ function RootLayoutNav() {
         name="feedback"
         options={{ title: "App Feedback", headerBackTitle: "Back" }}
       />
+      <Stack.Screen
+        name="notifications"
+        options={{ title: "Notifications", headerBackTitle: "Back" }}
+      />
     </Stack>
   );
 }

@@ -16,14 +16,12 @@ import {
   useListColonies,
   useCreateColony,
   useJoinColony,
-  getListColoniesQueryKey,
-  useListPendingMembers,
-  useVerifyColonyMember,
-  getListPendingMembersQueryKey
+  getListColoniesQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { StatCard } from "@/components/StatCard";
+import { NotificationBell } from "@/components/NotificationBell";
 import { formatDistanceToNow } from "date-fns";
 
 const ACTIVITY_ICONS: Record<string, { icon: keyof typeof Feather.glyphMap; color: string }> = {
@@ -50,8 +48,7 @@ export default function HomeScreen() {
   const [showAdminPasswordModal, setShowAdminPasswordModal] = React.useState(false);
   const [adminPasswordInput, setAdminPasswordInput] = React.useState("");
 
-  const [lastSeenTime, setLastSeenTime] = React.useState<number>(Date.now());
-  const [showNotificationsModal, setShowNotificationsModal] = React.useState(false);
+
 
   React.useEffect(() => {
     if (!user) return;
@@ -90,31 +87,7 @@ export default function HomeScreen() {
     })();
   }, [user]);
 
-  React.useEffect(() => {
-    if (user?.colonyId) {
-      (async () => {
-        try {
-          const val = await AsyncStorage.getItem("last_seen_notifications");
-          if (val) {
-            setLastSeenTime(Number(val));
-          } else {
-            const now = Date.now();
-            await AsyncStorage.setItem("last_seen_notifications", String(now));
-            setLastSeenTime(now);
-          }
-        } catch {}
-      })();
-    }
-  }, [user?.colonyId]);
 
-  const handleOpenNotifications = async () => {
-    setShowNotificationsModal(true);
-    const now = Date.now();
-    try {
-      await AsyncStorage.setItem("last_seen_notifications", String(now));
-      setLastSeenTime(now);
-    } catch {}
-  };
 
   const handleAdminChoicePress = () => {
     if (Platform.OS === "ios") {
@@ -159,20 +132,7 @@ export default function HomeScreen() {
   const { data: activity, isLoading: actLoading, refetch: refetchActivity } = useGetRecentActivity();
   const { data: alerts = [], refetch: refetchAlerts } = useListAlerts();
 
-  const { data: pendingMembers = [] } = useListPendingMembers({
-    query: {
-      enabled: !!user && user.isColonyAdmin === true,
-      refetchInterval: 15000,
-      queryKey: getListPendingMembersQueryKey()
-    }
-  });
-  const verifyMember = useVerifyColonyMember();
 
-  const pendingCount = user?.isColonyAdmin ? pendingMembers.length : 0;
-  const newActivityCount = activity 
-    ? activity.filter(a => new Date(a.createdAt).getTime() > lastSeenTime).length
-    : 0;
-  const unseenCount = pendingCount + newActivityCount;
 
   // Onboarding Hooks
   const { data: colonies, isLoading: coloniesLoading } = useListColonies({
@@ -474,20 +434,7 @@ export default function HomeScreen() {
           </Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          {user?.colonyId && (
-            <TouchableOpacity 
-              style={[styles.bellBtn, { backgroundColor: colors.card, borderColor: colors.border }]} 
-              onPress={handleOpenNotifications}
-              activeOpacity={0.7}
-            >
-              <Feather name="bell" size={20} color={colors.foreground} />
-              {unseenCount > 0 && (
-                <View style={[styles.bellBadge, { backgroundColor: colors.destructive }]}>
-                  <Text style={styles.bellBadgeText}>{unseenCount}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          )}
+          <NotificationBell />
           <Image
             source={require("@/assets/images/icon.png")}
             style={styles.logoMark}
@@ -681,86 +628,7 @@ export default function HomeScreen() {
       </View>
     </ScrollView>
 
-      {/* Notifications Modal */}
-      <Modal
-        visible={showNotificationsModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowNotificationsModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.notificationsContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <View style={[styles.notificationsHeader, { borderBottomColor: colors.border }]}>
-              <Text style={[styles.notificationsTitle, { color: colors.foreground }]}>Notifications</Text>
-              <TouchableOpacity onPress={() => setShowNotificationsModal(false)}>
-                <Feather name="x" size={20} color={colors.foreground} />
-              </TouchableOpacity>
-            </View>
 
-            <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }} showsVerticalScrollIndicator={false}>
-              {/* Residency Requests for Admins */}
-              {user?.isColonyAdmin && (
-                <View style={{ gap: 8 }}>
-                  <Text style={{ fontSize: 11, fontWeight: "bold", color: colors.primary, letterSpacing: 0.5 }}>RESIDENCY REQUESTS</Text>
-                  {pendingMembers.length === 0 ? (
-                    <Text style={{ fontSize: 12, color: colors.mutedForeground, fontStyle: "italic" }}>No pending requests.</Text>
-                  ) : (
-                    pendingMembers.map((member: any) => (
-                      <View key={member.id} style={[styles.pendingItem, { borderColor: colors.border }]}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ fontSize: 14, fontWeight: "bold", color: colors.foreground }}>{member.name}</Text>
-                          <Text style={{ fontSize: 11, color: colors.mutedForeground }}>{member.apartment || "No unit specified"}</Text>
-                        </View>
-                        <TouchableOpacity
-                          style={{ backgroundColor: "#10B981", paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6 }}
-                          onPress={async () => {
-                            try {
-                              await verifyMember.mutateAsync({ data: { memberId: member.id } });
-                              Alert.alert("Success", "Resident approved.");
-                              queryClient.invalidateQueries({ queryKey: getListPendingMembersQueryKey() });
-                            } catch (err: any) {
-                              Alert.alert("Error", err.message || "Failed to approve member");
-                            }
-                          }}
-                        >
-                          <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "bold" }}>Approve</Text>
-                        </TouchableOpacity>
-                      </View>
-                    ))
-                  )}
-                </View>
-              )}
-
-              {/* Recent Activities */}
-              <View style={{ gap: 8 }}>
-                <Text style={{ fontSize: 11, fontWeight: "bold", color: colors.primary, letterSpacing: 0.5 }}>RECENT ACTIVITY</Text>
-                {!activity?.length ? (
-                  <Text style={{ fontSize: 12, color: colors.mutedForeground, fontStyle: "italic" }}>No recent activity.</Text>
-                ) : (
-                  activity.map((item) => {
-                    const conf = ACTIVITY_ICONS[item.type] ?? ACTIVITY_ICONS.post;
-                    return (
-                      <View key={item.id} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8 }}>
-                        <View style={[styles.actIcon, { backgroundColor: conf.color + "18", width: 30, height: 30, borderRadius: 15 }]}>
-                          <Feather name={conf.icon} size={14} color={conf.color} />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ fontSize: 12, color: colors.foreground }}>
-                            <Text style={{ fontWeight: "bold" }}>{item.actorName}</Text> {item.type === "post" ? "posted" : item.type === "listing" ? "listed" : item.type === "event" ? "created event" : item.type === "alert" ? "reported" : "offered"}: {item.title}
-                          </Text>
-                          <Text style={{ fontSize: 10, color: colors.mutedForeground, marginTop: 2 }}>
-                            {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
-                          </Text>
-                        </View>
-                      </View>
-                    );
-                  })
-                )}
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </>
   );
 }

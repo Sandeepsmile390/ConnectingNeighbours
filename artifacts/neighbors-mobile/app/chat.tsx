@@ -24,6 +24,7 @@ import { formatDistanceToNow } from "date-fns";
 import * as Haptics from "expo-haptics";
 import * as DocumentPicker from "expo-document-picker";
 import { Audio } from "expo-av";
+import { playMobileSound } from "../utils/sound";
 
 // Voice Note Player Component
 function VoicePlayer({ uri }: { uri: string }) {
@@ -134,6 +135,19 @@ export default function ChatScreen() {
     }, 100);
   }, [messages, activeNeighborId]);
 
+  const prevMessagesCount = useRef(0);
+  useEffect(() => {
+    if (messages && messages.length > prevMessagesCount.current) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && lastMessage.senderId !== currentUser?.id && prevMessagesCount.current > 0) {
+        playMobileSound("receive");
+      }
+      prevMessagesCount.current = messages.length;
+    } else if (!messages || messages.length === 0) {
+      prevMessagesCount.current = 0;
+    }
+  }, [messages, currentUser?.id]);
+
   if (!currentUser) {
     return (
       <View style={[styles.centered, { backgroundColor: colors.background }]}>
@@ -153,6 +167,7 @@ export default function ChatScreen() {
           messageType: "text"
         }
       });
+      playMobileSound("send");
       setNewMessage("");
       refetchMessages();
       refetchConversations();
@@ -202,6 +217,7 @@ export default function ChatScreen() {
               fileName: file.name
             }
           });
+          playMobileSound("send");
           refetchMessages();
           refetchConversations();
         } catch {
@@ -258,6 +274,7 @@ export default function ChatScreen() {
                 fileUrl: base64Data
               }
             });
+            playMobileSound("send");
             refetchMessages();
             refetchConversations();
           } catch {

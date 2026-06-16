@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { EventCard } from "@/components/EventCard";
 import { EmptyState } from "@/components/EmptyState";
+import { NotificationBell } from "@/components/NotificationBell";
 import * as Haptics from "expo-haptics";
 
 export default function EventsScreen() {
@@ -77,15 +78,18 @@ export default function EventsScreen() {
           <View style={{ paddingTop: insets.top + webTopPad + 12 }}>
             <View style={styles.topBar}>
               <Text style={[styles.screenTitle, { color: colors.foreground }]}>Events</Text>
-              {isAuthenticated && (
-                <TouchableOpacity
-                  style={[styles.newBtn, { backgroundColor: colors.primary }]}
-                  onPress={() => setShowCreate(true)}
-                  activeOpacity={0.8}
-                >
-                  <Feather name="plus" size={18} color="#fff" />
-                </TouchableOpacity>
-              )}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <NotificationBell />
+                {isAuthenticated && (
+                  <TouchableOpacity
+                    style={[styles.newBtn, { backgroundColor: colors.primary }]}
+                    onPress={() => setShowCreate(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Feather name="plus" size={18} color="#fff" />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           </View>
         }

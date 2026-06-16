@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { playSentChime, playReceivedChime } from "@/lib/sound";
 
 export default function Chat() {
   const { user: currentUser } = useAuth();
@@ -69,6 +70,19 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const prevMessagesCount = useRef(0);
+  useEffect(() => {
+    if (messages && messages.length > prevMessagesCount.current) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && lastMessage.senderId !== currentUser?.id && prevMessagesCount.current > 0) {
+        playReceivedChime();
+      }
+      prevMessagesCount.current = messages.length;
+    } else if (!messages) {
+      prevMessagesCount.current = 0;
+    }
+  }, [messages, currentUser?.id]);
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || activeNeighborId === null) return;
@@ -82,6 +96,7 @@ export default function Chat() {
     }, {
       onSuccess: () => {
         setNewMessage("");
+        playSentChime();
         queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(activeNeighborId) });
         queryClient.invalidateQueries({ queryKey: getListConversationsQueryKey() });
       },
@@ -145,6 +160,7 @@ export default function Chat() {
             }
           }, {
             onSuccess: () => {
+              playSentChime();
               queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(activeNeighborId!) });
               queryClient.invalidateQueries({ queryKey: getListConversationsQueryKey() });
             },
@@ -196,6 +212,7 @@ export default function Chat() {
         }
       }, {
         onSuccess: () => {
+          playSentChime();
           queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(activeNeighborId!) });
           queryClient.invalidateQueries({ queryKey: getListConversationsQueryKey() });
         },
