@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useListUsers, getListUsersQueryKey, useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
-import { Search, MapPin, Phone, Mail, Calendar, Twitter, Facebook, Linkedin, Instagram, Github } from "lucide-react";
+import { Search, MapPin, Phone, Mail, Calendar, Twitter, Facebook, Linkedin, Instagram, Github, Shield } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -74,7 +74,9 @@ export default function Members() {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold text-lg truncate">{user.name}</h3>
                       {user.isColonyAdmin ? (
-                        <Badge variant="secondary" className="bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 h-5 px-1.5 text-[10px]">Colony Admin</Badge>
+                        <Badge variant="secondary" className="bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 h-5 px-1.5 text-[10px] flex items-center gap-1">
+                          <Shield className="h-3 w-3" /> Admin
+                        </Badge>
                       ) : user.isVerified ? (
                         <Badge variant="secondary" className="bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 h-5 px-1.5 text-[10px]">Verified</Badge>
                       ) : (
