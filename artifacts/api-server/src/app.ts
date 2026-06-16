@@ -35,7 +35,7 @@ app.use(compression());
 // Rate limiter for API routes (skipped in development mode)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: 1500, // Increased to 1500 to support real-time UI background polling
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => process.env.NODE_ENV !== "production",

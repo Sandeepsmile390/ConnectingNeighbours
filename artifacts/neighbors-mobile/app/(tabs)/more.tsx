@@ -43,7 +43,7 @@ export default function MoreScreen() {
   const { data: conversations } = useListConversations({
     query: {
       enabled: isAuthenticated && !!user,
-      refetchInterval: 5000,
+      refetchInterval: 10000,
       queryKey: getListConversationsQueryKey()
     }
   });
@@ -51,7 +51,7 @@ export default function MoreScreen() {
   const { data: pendingMembers } = useListPendingMembers({
     query: {
       enabled: isAuthenticated && !!user && user.isColonyAdmin === true,
-      refetchInterval: 5000,
+      refetchInterval: 15000,
       queryKey: getListPendingMembersQueryKey()
     }
   });
@@ -59,7 +59,7 @@ export default function MoreScreen() {
   const { data: alerts } = useListAlerts({
     query: {
       enabled: isAuthenticated && !!user,
-      refetchInterval: 5000,
+      refetchInterval: 10000,
       queryKey: getListAlertsQueryKey()
     }
   });

@@ -71,7 +71,7 @@ function ColonyAdminNotificationButton({ user }: { user: any }) {
   const { data: pendingMembers } = useListPendingMembers({
     query: {
       enabled: !!user && user.isColonyAdmin === true,
-      refetchInterval: 5000,
+      refetchInterval: 15000,
       queryKey: getListPendingMembersQueryKey(),
     }
   });
@@ -164,11 +164,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   const pageLoadTime = useRef(new Date());
   const seenIds = useRef<Set<string>>(new Set());
 
-  // Poll for recent activity every 5 seconds to generate alerts
+  // Poll for recent activity every 10 seconds to generate alerts
   const { data: recentActivity } = useGetRecentActivity({
     query: {
       enabled: !!user,
-      refetchInterval: 5000,
+      refetchInterval: 10000,
       queryKey: getGetRecentActivityQueryKey(),
     }
   });
@@ -177,7 +177,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { data: conversations } = useListConversations({
     query: {
       enabled: !!user,
-      refetchInterval: 5000,
+      refetchInterval: 10000,
       queryKey: getListConversationsQueryKey()
     }
   });
@@ -185,7 +185,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { data: pendingMembers } = useListPendingMembers({
     query: {
       enabled: !!user && user.isColonyAdmin === true,
-      refetchInterval: 5000,
+      refetchInterval: 15000,
       queryKey: getListPendingMembersQueryKey()
     }
   });
@@ -193,7 +193,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { data: alerts } = useListAlerts({
     query: {
       enabled: !!user,
-      refetchInterval: 5000,
+      refetchInterval: 10000,
       queryKey: getListAlertsQueryKey()
     }
   });
