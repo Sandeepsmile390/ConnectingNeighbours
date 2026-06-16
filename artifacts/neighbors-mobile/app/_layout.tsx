@@ -37,6 +37,10 @@ function RootLayoutNav() {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
+        name="auth-callback"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="alerts"
         options={{ title: "Safety Alerts", headerBackTitle: "Back" }}
       />

@@ -214,7 +214,12 @@ export default function HostelsScreen() {
         )}
 
         {/* Post Modal Form */}
-        <Modal visible={isModalOpen} animationType="slide" transparent={true}>
+        <Modal
+          visible={isModalOpen}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setIsModalOpen(false)}
+        >
           <View style={styles.modalOverlay}>
             <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={styles.modalHeader}>
@@ -290,7 +295,12 @@ export default function HostelsScreen() {
         </Modal>
 
         {/* Colony Picker Selector Modal */}
-        <Modal visible={isColonyPickerOpen} transparent animationType="fade">
+        <Modal
+          visible={isColonyPickerOpen}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setIsColonyPickerOpen(false)}
+        >
           <View style={styles.pickerOverlay}>
             <View style={[styles.pickerContent, { backgroundColor: colors.card }]}>
               <View style={styles.pickerHeader}>

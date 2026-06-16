@@ -72,11 +72,20 @@ router.get("/users", async (req, res) => {
 });
 
 router.get("/users/:id", async (req, res) => {
+  const currentUser = await getOrCreateNeighborhoodUser(req);
+  if (!currentUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
   const id = Number(req.params.id);
   const user = await db.query.neighborhoodUsersTable.findFirst({
     where: eq(neighborhoodUsersTable.id, id),
   });
   if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
+  if (currentUser.id !== user.id && (currentUser.colonyId === null || currentUser.colonyId !== user.colonyId)) {
+    res.status(403).json({ error: "Forbidden: You cannot view this profile" });
+    return;
+  }
+
   res.json({
     id: user.id,
     replitId: user.replitId,
@@ -101,7 +110,15 @@ router.get("/users/:id", async (req, res) => {
 
 router.put("/users/:id", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const currentUser = await getOrCreateNeighborhoodUser(req);
+  if (!currentUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
   const id = Number(req.params.id);
+  if (currentUser.id !== id) {
+    res.status(403).json({ error: "Forbidden: You can only update your own profile" });
+    return;
+  }
+
   const body = UpdateUserBody.parse(req.body);
 
   const [updated] = await db.update(neighborhoodUsersTable)

@@ -156,9 +156,14 @@ export default function MarketScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       />
 
-      <Modal visible={showCreate} animationType="slide" presentationStyle="pageSheet">
+      <Modal
+        visible={showCreate}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowCreate(false)}
+      >
         <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-          <View style={[styles.modal, { backgroundColor: colors.background }]}>
+          <View style={[styles.modal, { backgroundColor: colors.background, paddingTop: Platform.OS === "android" ? insets.top : 0 }]}>
             <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
               <TouchableOpacity onPress={() => setShowCreate(false)}>
                 <Feather name="x" size={22} color={colors.foreground} />

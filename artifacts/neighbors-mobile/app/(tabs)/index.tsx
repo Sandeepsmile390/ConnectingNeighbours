@@ -43,6 +43,19 @@ export default function HomeScreen() {
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = React.useState<"choose" | "admin" | "resident">("choose");
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
+        const role = await AsyncStorage.getItem("intended_role");
+        if (role === "admin" || role === "resident") {
+          setActiveTab(role as any);
+          await AsyncStorage.removeItem("intended_role");
+        }
+      } catch {}
+    })();
+  }, []);
   const [searchTerm, setSearchTerm] = React.useState("");
   
   // Create Form States

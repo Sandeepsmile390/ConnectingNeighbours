@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@workspace/replit-auth-web";
@@ -43,6 +43,14 @@ function ColonyOnboarding() {
   const { toast } = useToast();
   
   const [activeTab, setActiveTab] = useState<"choose" | "admin" | "resident">("choose");
+
+  useEffect(() => {
+    const role = localStorage.getItem("intended_role");
+    if (role === "admin" || role === "resident") {
+      setActiveTab(role);
+      localStorage.removeItem("intended_role");
+    }
+  }, []);
   const [searchTerm, setSearchTerm] = useState("");
   
   // Create Form States

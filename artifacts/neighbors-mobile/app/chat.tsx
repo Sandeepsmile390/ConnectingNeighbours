@@ -439,7 +439,12 @@ export default function ChatScreen() {
           </ScrollView>
 
           {/* New Chat Contacts Modal */}
-          <Modal visible={newChatOpen} animationType="slide" transparent>
+          <Modal
+            visible={newChatOpen}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setNewChatOpen(false)}
+          >
             <View style={styles.modalOverlay}>
               <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
                 <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>

@@ -81,9 +81,10 @@ router.post("/posts", async (req, res) => {
 });
 
 router.get("/posts/:id", async (req, res) => {
-  const id = Number(req.params.id);
   const nbUser = await getOrCreateNeighborhoodUser(req);
-  const myId = nbUser?.id;
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const myId = nbUser.id;
+  const id = Number(req.params.id);
 
   const post = await db.query.postsTable.findFirst({
     where: eq(postsTable.id, id),
@@ -91,6 +92,11 @@ router.get("/posts/:id", async (req, res) => {
   });
 
   if (!post) { res.status(404).json({ error: "Post not found" }); return; }
+
+  if ((post as any).author.colonyId !== nbUser.colonyId) {
+    res.status(403).json({ error: "Forbidden: Post belongs to another colony" });
+    return;
+  }
 
   const liked = myId
     ? !!(await db.query.postLikesTable.findFirst({ where: and(eq(postLikesTable.postId, id), eq(postLikesTable.userId, myId)) }))
@@ -101,7 +107,25 @@ router.get("/posts/:id", async (req, res) => {
 
 router.delete("/posts/:id", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
   const id = Number(req.params.id);
+  const post = await db.query.postsTable.findFirst({
+    where: eq(postsTable.id, id),
+    with: { author: true },
+  });
+
+  if (!post) { res.status(404).json({ error: "Post not found" }); return; }
+
+  const isAuthor = post.authorId === nbUser.id;
+  const isColonyAdmin = nbUser.isColonyAdmin && nbUser.colonyId === (post as any).author.colonyId;
+
+  if (!isAuthor && !isColonyAdmin) {
+    res.status(403).json({ error: "Forbidden: Only the author or a colony admin can delete this post" });
+    return;
+  }
+
   await db.delete(postsTable).where(eq(postsTable.id, id));
   res.status(204).send();
 });

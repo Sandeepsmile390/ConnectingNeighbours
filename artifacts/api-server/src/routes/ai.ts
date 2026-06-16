@@ -1,53 +1,76 @@
 import { Router } from "express";
-import { db, listingsTable, alertsTable, resourcesTable, eq } from "@workspace/db";
+import { db, listingsTable, alertsTable, resourcesTable, neighborhoodUsersTable, eventsTable, eq, and } from "@workspace/db";
 import { QueryAiAssistantBody } from "@workspace/api-zod";
+import { getOrCreateNeighborhoodUser } from "./users.js";
 
 const router = Router();
 
 router.post("/ai/query", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const colonyId = nbUser.colonyId;
+  if (!colonyId) {
+    res.json({ response: "Please join a colony first before querying the AI assistant!" });
+    return;
+  }
 
   const body = QueryAiAssistantBody.parse(req.body);
   const apiKey = process.env.GEMINI_API_KEY;
 
   try {
-    // 1. Gather active context from all community tables
-    const activeListings = await db.query.listingsTable.findMany({
-      where: eq(listingsTable.isAvailable, true),
-      with: { seller: true },
-    });
+    // 1. Gather active context from all community tables filtered by colony
+    const activeListings = await db.select({
+      listing: listingsTable,
+      seller: neighborhoodUsersTable
+    })
+    .from(listingsTable)
+    .innerJoin(neighborhoodUsersTable, eq(listingsTable.sellerId, neighborhoodUsersTable.id))
+    .where(and(eq(neighborhoodUsersTable.colonyId, colonyId), eq(listingsTable.isAvailable, true)));
 
-    const activeAlerts = await db.query.alertsTable.findMany({
-      where: eq(alertsTable.isResolved, false),
-      with: { reporter: true },
-    });
+    const activeAlerts = await db.select({
+      alert: alertsTable,
+      reporter: neighborhoodUsersTable
+    })
+    .from(alertsTable)
+    .innerJoin(neighborhoodUsersTable, eq(alertsTable.reporterId, neighborhoodUsersTable.id))
+    .where(and(eq(neighborhoodUsersTable.colonyId, colonyId), eq(alertsTable.isResolved, false)));
 
-    const upcomingEvents = await db.query.eventsTable.findMany({
-      with: { organizer: true },
-    });
+    const upcomingEvents = await db.select({
+      event: eventsTable,
+      organizer: neighborhoodUsersTable
+    })
+    .from(eventsTable)
+    .innerJoin(neighborhoodUsersTable, eq(eventsTable.organizerId, neighborhoodUsersTable.id))
+    .where(eq(neighborhoodUsersTable.colonyId, colonyId));
 
-    const sharedResources = await db.query.resourcesTable.findMany({
-      where: eq(resourcesTable.isAvailable, true),
-      with: { offerer: true },
-    });
+    const sharedResources = await db.select({
+      resource: resourcesTable,
+      offerer: neighborhoodUsersTable
+    })
+    .from(resourcesTable)
+    .innerJoin(neighborhoodUsersTable, eq(resourcesTable.offererId, neighborhoodUsersTable.id))
+    .where(and(eq(neighborhoodUsersTable.colonyId, colonyId), eq(resourcesTable.isAvailable, true)));
 
-    const members = await db.query.neighborhoodUsersTable.findMany();
+    const members = await db.select()
+      .from(neighborhoodUsersTable)
+      .where(eq(neighborhoodUsersTable.colonyId, colonyId));
 
     // 2. Format database context concisely
     const listingsContext = activeListings.map(l => 
-      `- ${l.title} (${l.type === "free" ? "FREE" : `$${l.price}`}, Category: ${l.category}) - Offered by ${l.seller.name} in apartment ${l.seller.apartment || "N/A"}. Description: ${l.description}`
+      `- ${l.listing.title} (${l.listing.type === "free" ? "FREE" : `$${l.listing.price}`}, Category: ${l.listing.category}) - Offered by ${l.seller.name} in apartment ${l.seller.apartment || "N/A"}. Description: ${l.listing.description}`
     ).join("\n");
 
     const alertsContext = activeAlerts.map(a => 
-      `- [${a.severity.toUpperCase()} ALERT] ${a.title} - Reported by ${a.reporter.name} in ${a.reporter.apartment || "N/A"}. Details: ${a.description}`
+      `- [${a.alert.severity.toUpperCase()} ALERT] ${a.alert.title} - Reported by ${a.reporter.name} in ${a.reporter.apartment || "N/A"}. Details: ${a.alert.description}`
     ).join("\n");
 
     const eventsContext = upcomingEvents.map(e => 
-      `- Event: "${e.title}" at location: "${e.location}" starting at ${new Date(e.startsAt).toLocaleString()}. Organized by ${e.organizer.name}. Details: ${e.description}`
+      `- Event: "${e.event.title}" at location: "${e.event.location}" starting at ${new Date(e.event.startsAt).toLocaleString()}. Organized by ${e.organizer.name}. Details: ${e.event.description}`
     ).join("\n");
 
     const resourcesContext = sharedResources.map(r => 
-      `- Shared ${r.type}: "${r.title}" - Offered by ${r.offerer.name} in ${r.offerer.apartment || "N/A"}. Details: ${r.description}`
+      `- Shared ${r.resource.type}: "${r.resource.title}" - Offered by ${r.offerer.name} in ${r.offerer.apartment || "N/A"}. Details: ${r.resource.description}`
     ).join("\n");
 
     const membersContext = members.map(m => 

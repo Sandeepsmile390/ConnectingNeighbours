@@ -72,17 +72,29 @@ router.post("/marketplace", async (req, res) => {
 });
 
 router.get("/marketplace/:id", async (req, res) => {
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
   const id = Number(req.params.id);
   const listing = await db.query.listingsTable.findFirst({
     where: eq(listingsTable.id, id),
     with: { seller: true },
   });
   if (!listing) { res.status(404).json({ error: "Listing not found" }); return; }
+
+  if ((listing as any).seller.colonyId !== nbUser.colonyId) {
+    res.status(403).json({ error: "Forbidden: Listing belongs to another colony" });
+    return;
+  }
+
   res.json(formatListing(listing, (listing as any).seller));
 });
 
 router.put("/marketplace/:id", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
   const id = Number(req.params.id);
   const body = UpdateListingBody.parse(req.body);
 
@@ -92,13 +104,33 @@ router.put("/marketplace/:id", async (req, res) => {
   const listing = await db.query.listingsTable.findFirst({ where: eq(listingsTable.id, id), with: { seller: true } });
   if (!listing) { res.status(404).json({ error: "Listing not found" }); return; }
 
+  if (listing.sellerId !== nbUser.id) {
+    res.status(403).json({ error: "Forbidden: Only the seller can update this listing" });
+    return;
+  }
+
   const [updated] = await db.update(listingsTable).set(updateData).where(eq(listingsTable.id, id)).returning();
   res.json(formatListing(updated, (listing as any).seller));
 });
 
 router.delete("/marketplace/:id", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
-  await db.delete(listingsTable).where(eq(listingsTable.id, Number(req.params.id)));
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  const id = Number(req.params.id);
+  const listing = await db.query.listingsTable.findFirst({ where: eq(listingsTable.id, id), with: { seller: true } });
+  if (!listing) { res.status(404).json({ error: "Listing not found" }); return; }
+
+  const isSeller = listing.sellerId === nbUser.id;
+  const isColonyAdmin = nbUser.isColonyAdmin && nbUser.colonyId === (listing as any).seller.colonyId;
+
+  if (!isSeller && !isColonyAdmin) {
+    res.status(403).json({ error: "Forbidden: Only the seller or a colony admin can delete this listing" });
+    return;
+  }
+
+  await db.delete(listingsTable).where(eq(listingsTable.id, id));
   res.status(204).send();
 });
 

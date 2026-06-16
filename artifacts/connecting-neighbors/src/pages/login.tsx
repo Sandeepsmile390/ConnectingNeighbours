@@ -20,12 +20,30 @@ export default function Login() {
             </p>
           </div>
 
-          <div className="bg-card border rounded-2xl p-8 shadow-sm">
-            <Button size="lg" className="w-full text-base font-semibold" onClick={() => login()}>
-              Join your neighborhood
+          <div className="bg-card border rounded-2xl p-8 shadow-sm space-y-3">
+            <Button 
+              size="lg" 
+              className="w-full text-base font-semibold" 
+              onClick={() => {
+                localStorage.setItem("intended_role", "admin");
+                login();
+              }}
+            >
+              Sign In as Colony Admin
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="w-full text-base font-semibold" 
+              onClick={() => {
+                localStorage.setItem("intended_role", "resident");
+                login();
+              }}
+            >
+              Sign In as Resident
             </Button>
             <p className="mt-4 text-sm text-muted-foreground">
-              Securely authenticate with Replit to verify you're a real neighbor.
+              Securely authenticate with Google to verify you're a real neighbor.
             </p>
           </div>
         </div>

@@ -66,7 +66,22 @@ router.post("/resources", async (req, res) => {
 
 router.delete("/resources/:id", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
-  await db.delete(resourcesTable).where(eq(resourcesTable.id, Number(req.params.id)));
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  const id = Number(req.params.id);
+  const resource = await db.query.resourcesTable.findFirst({ where: eq(resourcesTable.id, id), with: { offerer: true } });
+  if (!resource) { res.status(404).json({ error: "Resource not found" }); return; }
+
+  const isOfferer = resource.offererId === nbUser.id;
+  const isColonyAdmin = nbUser.isColonyAdmin && nbUser.colonyId === (resource as any).offerer.colonyId;
+
+  if (!isOfferer && !isColonyAdmin) {
+    res.status(403).json({ error: "Forbidden: Only the offerer or a colony admin can delete this resource" });
+    return;
+  }
+
+  await db.delete(resourcesTable).where(eq(resourcesTable.id, id));
   res.status(204).send();
 });
 

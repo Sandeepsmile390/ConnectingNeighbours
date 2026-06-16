@@ -181,45 +181,6 @@ router.patch("/messages/:messageId", async (req, res) => {
   const nbUser = await getOrCreateNeighborhoodUser(req);
   if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
 
-  const myId = nbUser.id;
-  const params = EditMessageParams.parse({ messageId: req.params.messageId });
-  const body = EditMessageBody.parse(req.body);
-
-  // Retrieve message to check ownership
-  const [existingMsg] = await db.select().from(messagesTable).where(eq(messagesTable.id, params.messageId)).limit(1);
-  if (!existingMsg) { res.status(404).json({ error: "Message not found" }); return; }
-  if (existingMsg.senderId !== myId) { res.status(403).json({ error: "Forbidden: You can only edit your own messages" }); return; }
-  if (existingMsg.isDeleted) { res.status(400).json({ error: "Cannot edit a deleted message" }); return; }
-
-  const [updatedMsg] = await db.update(messagesTable)
-    .set({
-      content: body.content,
-      isEdited: true,
-    })
-    .where(eq(messagesTable.id, params.messageId))
-    .returning();
-
-  res.json({
-    id: updatedMsg.id,
-    senderId: updatedMsg.senderId,
-    receiverId: updatedMsg.receiverId,
-    content: updatedMsg.content,
-    isRead: updatedMsg.isRead,
-    isEdited: updatedMsg.isEdited,
-    isDeleted: updatedMsg.isDeleted,
-    messageType: updatedMsg.messageType,
-    fileUrl: updatedMsg.fileUrl,
-    fileName: updatedMsg.fileName,
-    createdAt: updatedMsg.createdAt,
-  });
-});
-
-// PATCH /messages/:messageId - Edit a message
-router.patch("/messages/:messageId", async (req, res) => {
-  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const nbUser = await getOrCreateNeighborhoodUser(req);
-  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
-
   try {
     const myId = nbUser.id;
     const params = EditMessageParams.parse({ messageId: req.params.messageId });

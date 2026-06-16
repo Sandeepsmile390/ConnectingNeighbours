@@ -157,7 +157,12 @@ export default function FeedbackScreen() {
         </View>
 
         {/* Category Picker Overlay */}
-        <Modal visible={isPickerOpen} transparent animationType="fade">
+        <Modal
+          visible={isPickerOpen}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setIsPickerOpen(false)}
+        >
           <View style={styles.modalOverlay}>
             <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
               <View style={styles.modalHeader}>

@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   Image, Platform, Alert, Modal, TextInput,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
@@ -172,13 +173,57 @@ export default function MoreScreen() {
             <Text style={[styles.loginDesc, { color: colors.mutedForeground }]}>
               Sign in to post, RSVP to events, and connect with neighbors.
             </Text>
-            <TouchableOpacity
-              style={[styles.loginBtn, { backgroundColor: colors.primary }]}
-              onPress={login}
-              activeOpacity={0.85}
-            >
-              <Text style={[styles.loginBtnText, { color: colors.primaryForeground }]}>Sign In with Replit</Text>
-            </TouchableOpacity>
+            
+            <View style={{ width: "100%", gap: 10, marginTop: 12 }}>
+              <TouchableOpacity
+                style={[styles.loginBtn, { backgroundColor: colors.primary, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6 }]}
+                onPress={async () => {
+                  try {
+                    await AsyncStorage.setItem("intended_role", "admin");
+                  } catch {}
+                  login();
+                }}
+                activeOpacity={0.85}
+              >
+                <Feather name="shield" size={16} color={colors.primaryForeground} />
+                <Text style={[styles.loginBtnText, { color: colors.primaryForeground }]}>Sign In as Admin (Google)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.loginBtn, { backgroundColor: colors.primary, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6 }]}
+                onPress={async () => {
+                  try {
+                    await AsyncStorage.setItem("intended_role", "resident");
+                  } catch {}
+                  login();
+                }}
+                activeOpacity={0.85}
+              >
+                <Feather name="user" size={16} color={colors.primaryForeground} />
+                <Text style={[styles.loginBtnText, { color: colors.primaryForeground }]}>Sign In as Resident (Google)</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Developer Simulated Logins */}
+            <View style={{ width: "100%", marginTop: 16, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 16 }}>
+              <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, textAlign: "center", marginBottom: 8, letterSpacing: 0.5 }}>
+                DEVELOPER SIMULATED LOGINS
+              </Text>
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <TouchableOpacity
+                  style={[styles.devLoginBtn, { borderColor: colors.primary }]}
+                  onPress={handleAdminDevLogin}
+                >
+                  <Text style={[styles.devLoginBtnText, { color: colors.primary }]}>Dev Admin</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.devLoginBtn, { borderColor: colors.primary }]}
+                  onPress={() => loginDev("resident")}
+                >
+                  <Text style={[styles.devLoginBtnText, { color: colors.primary }]}>Dev Resident</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         )}
 
