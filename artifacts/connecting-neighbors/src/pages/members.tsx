@@ -77,7 +77,9 @@ export default function Members() {
                         <Badge variant="secondary" className="bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 h-5 px-1.5 text-[10px]">Colony Admin</Badge>
                       ) : user.isVerified ? (
                         <Badge variant="secondary" className="bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 h-5 px-1.5 text-[10px]">Verified</Badge>
-                      ) : null}
+                      ) : (
+                        <Badge variant="secondary" className="bg-destructive/10 text-destructive border border-destructive/20 h-5 px-1.5 text-[10px]">Not Verified</Badge>
+                      )}
                     </div>
                     
                     <div className="space-y-1.5 text-sm text-muted-foreground">

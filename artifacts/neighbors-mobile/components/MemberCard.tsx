@@ -45,7 +45,12 @@ export function MemberCard({ user }: { user: User }) {
             <Feather name="check-circle" size={10} color="#3B82F6" />
             <Text style={styles.verifiedText}>Verified</Text>
           </View>
-        ) : null}
+        ) : (
+          <View style={[styles.verifiedBadge, { backgroundColor: "#EF444410", borderColor: "#EF444430", borderWidth: 0.5 }]}>
+            <Feather name="x-circle" size={10} color="#EF4444" />
+            <Text style={[styles.verifiedText, { color: "#EF4444" }]}>Not Verified</Text>
+          </View>
+        )}
       </View>
       <Text style={[styles.name, { color: colors.foreground }]}>{user.name}</Text>
       {user.apartment && (
