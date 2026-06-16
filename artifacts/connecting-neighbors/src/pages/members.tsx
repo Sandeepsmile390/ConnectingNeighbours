@@ -73,9 +73,11 @@ export default function Members() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold text-lg truncate">{user.name}</h3>
-                      {user.isVerified && (
+                      {user.isColonyAdmin ? (
+                        <Badge variant="secondary" className="bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 h-5 px-1.5 text-[10px]">Colony Admin</Badge>
+                      ) : user.isVerified ? (
                         <Badge variant="secondary" className="bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 h-5 px-1.5 text-[10px]">Verified</Badge>
-                      )}
+                      ) : null}
                     </div>
                     
                     <div className="space-y-1.5 text-sm text-muted-foreground">

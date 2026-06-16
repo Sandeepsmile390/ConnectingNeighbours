@@ -82,13 +82,14 @@ router.post("/colonies/join", async (req, res) => {
       return;
     }
 
-    // Update user: put on pending status for new colony
+    // Update user: put on pending status for new colony (unless they are already an admin)
+    const isUserAdmin = nbUser.isColonyAdmin === true;
     const [updatedUser] = await db.update(neighborhoodUsersTable)
       .set({
         colonyId: body.colonyId,
-        isColonyAdmin: false,
-        isColonyApproved: false, // Requires admin verification
-        isVerified: false,       // Reset verification badge until approved by new admin
+        isColonyAdmin: isUserAdmin,
+        isColonyApproved: isUserAdmin ? true : false, // Auto-approve if they are admin
+        isVerified: isUserAdmin ? true : false,       // Auto-verify if they are admin
       })
       .where(eq(neighborhoodUsersTable.id, nbUser.id))
       .returning();

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, hostelsTable } from "@workspace/db";
+import { db, hostelsTable, eq } from "@workspace/db";
 import { CreateHostelBody } from "@workspace/api-zod";
 import { getOrCreateNeighborhoodUser } from "./users.js";
 
@@ -8,8 +8,14 @@ const router = Router();
 // GET /hostels - List all hostel listings
 router.get("/hostels", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser || !nbUser.colonyId) {
+    res.json([]);
+    return;
+  }
+
   try {
-    const hostels = await db.select().from(hostelsTable);
+    const hostels = await db.select().from(hostelsTable).where(eq(hostelsTable.colonyId, nbUser.colonyId));
     res.json(hostels);
   } catch (err: any) {
     req.log.error({ err }, "Failed to fetch hostels");

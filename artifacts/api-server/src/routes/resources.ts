@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, resourcesTable, eq } from "@workspace/db";
+import { db, resourcesTable, neighborhoodUsersTable, eq, desc } from "@workspace/db";
 import { CreateResourceBody, ListResourcesQueryParams } from "@workspace/api-zod";
 import { getOrCreateNeighborhoodUser } from "./users.js";
 
@@ -31,11 +31,23 @@ function formatResource(r: any, offerer: any) {
 
 router.get("/resources", async (req, res) => {
   const params = ListResourcesQueryParams.parse(req.query);
-  const resources = await db.query.resourcesTable.findMany({
-    with: { offerer: true },
-  });
-  const filtered = resources.filter(r => !params.type || r.type === params.type);
-  res.json(filtered.map(r => formatResource(r, (r as any).offerer)));
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser || !nbUser.colonyId) {
+    res.json([]);
+    return;
+  }
+
+  const resources = await db.select({
+    resource: resourcesTable,
+    offerer: neighborhoodUsersTable
+  })
+  .from(resourcesTable)
+  .innerJoin(neighborhoodUsersTable, eq(resourcesTable.offererId, neighborhoodUsersTable.id))
+  .where(eq(neighborhoodUsersTable.colonyId, nbUser.colonyId))
+  .orderBy(desc(resourcesTable.createdAt));
+
+  const filtered = resources.filter(r => !params.type || r.resource.type === params.type);
+  res.json(filtered.map(r => formatResource(r.resource, r.offerer)));
 });
 
 router.post("/resources", async (req, res) => {

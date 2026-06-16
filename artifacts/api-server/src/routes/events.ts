@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, eventsTable, eventRsvpsTable, eq, and } from "@workspace/db";
+import { db, eventsTable, eventRsvpsTable, neighborhoodUsersTable, eq, and, desc } from "@workspace/db";
 import { CreateEventBody } from "@workspace/api-zod";
 import { getOrCreateNeighborhoodUser } from "./users.js";
 
@@ -34,19 +34,28 @@ function formatEvent(e: any, organizer: any, isRsvpedByMe: boolean) {
 
 router.get("/events", async (req, res) => {
   const nbUser = await getOrCreateNeighborhoodUser(req);
-  const myId = nbUser?.id;
+  if (!nbUser || !nbUser.colonyId) {
+    res.json([]);
+    return;
+  }
+  const myId = nbUser.id;
 
-  const events = await db.query.eventsTable.findMany({
-    with: { organizer: true },
-  });
+  const events = await db.select({
+    event: eventsTable,
+    organizer: neighborhoodUsersTable
+  })
+  .from(eventsTable)
+  .innerJoin(neighborhoodUsersTable, eq(eventsTable.organizerId, neighborhoodUsersTable.id))
+  .where(eq(neighborhoodUsersTable.colonyId, nbUser.colonyId))
+  .orderBy(desc(eventsTable.createdAt));
 
-  const eventIds = events.map(e => e.id);
+  const eventIds = events.map(e => e.event.id);
   const myRsvps = myId && eventIds.length > 0
     ? await db.select({ eventId: eventRsvpsTable.eventId }).from(eventRsvpsTable).where(eq(eventRsvpsTable.userId, myId))
     : [];
   const rsvpedSet = new Set(myRsvps.map(r => r.eventId));
 
-  res.json(events.map(e => formatEvent(e, (e as any).organizer, rsvpedSet.has(e.id))));
+  res.json(events.map(e => formatEvent(e.event, e.organizer, rsvpedSet.has(e.event.id))));
 });
 
 router.post("/events", async (req, res) => {

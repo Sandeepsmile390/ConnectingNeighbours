@@ -34,7 +34,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   token: string | null;
   login: () => Promise<void>;
-  loginDev: (role: "admin" | "resident") => Promise<void>;
+  loginDev: (role: "admin" | "resident", password?: string) => Promise<void>;
   logout: () => Promise<void>;
   refetchUser: () => Promise<void>;
 }
@@ -120,9 +120,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await applyToken(t);
   }, [applyToken]);
 
-  const loginDev = useCallback(async (role: "admin" | "resident") => {
+  const loginDev = useCallback(async (role: "admin" | "resident", password?: string) => {
     const redirectUrl = Linking.createURL("auth-callback");
-    const loginUrl = `https://${DOMAIN}/api/auth/dev-login?role=${role}&mobile_redirect=${encodeURIComponent(redirectUrl)}`;
+    let loginUrl = `https://${DOMAIN}/api/auth/dev-login?role=${role}&mobile_redirect=${encodeURIComponent(redirectUrl)}`;
+    if (password) {
+      loginUrl += `&password=${encodeURIComponent(password)}`;
+    }
 
     const result = await WebBrowser.openAuthSessionAsync(loginUrl, redirectUrl);
     if (result.type !== "success") return;

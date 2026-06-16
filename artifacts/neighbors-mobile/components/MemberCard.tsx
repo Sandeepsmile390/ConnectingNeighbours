@@ -11,6 +11,7 @@ interface User {
   apartment?: string | null;
   avatarUrl?: string | null;
   isVerified: boolean;
+  isColonyAdmin?: boolean | null;
   joinedAt: string;
   twitterUrl?: string | null;
   facebookUrl?: string | null;
@@ -34,12 +35,17 @@ export function MemberCard({ user }: { user: User }) {
             </Text>
           </View>
         )}
-        {user.isVerified && (
+        {user.isColonyAdmin ? (
+          <View style={[styles.verifiedBadge, { backgroundColor: "#F59E0B18", borderColor: "#F59E0B30", borderWidth: 0.5 }]}>
+            <Feather name="shield" size={10} color="#F59E0B" />
+            <Text style={[styles.verifiedText, { color: "#F59E0B" }]}>Admin</Text>
+          </View>
+        ) : user.isVerified ? (
           <View style={[styles.verifiedBadge, { backgroundColor: "#3B82F618" }]}>
             <Feather name="check-circle" size={10} color="#3B82F6" />
             <Text style={styles.verifiedText}>Verified</Text>
           </View>
-        )}
+        ) : null}
       </View>
       <Text style={[styles.name, { color: colors.foreground }]}>{user.name}</Text>
       {user.apartment && (

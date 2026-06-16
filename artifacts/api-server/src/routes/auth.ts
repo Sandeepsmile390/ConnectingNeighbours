@@ -240,9 +240,14 @@ router.get("/callback", async (req: any, res: any) => {
 
 router.get("/auth/dev-login", async (req: any, res: any) => {
   const role = req.query.role || "resident";
+  const password = req.query.password;
   const mobileRedirect = req.query.mobile_redirect;
 
   const isDevAdmin = role === "admin";
+  if (isDevAdmin && password !== "Admin@1234") {
+    res.status(401).json({ error: "Invalid admin password" });
+    return;
+  }
   const replitId = isDevAdmin ? "dev-admin-id" : "dev-resident-id";
   const email = isDevAdmin ? "admin@dev.local" : "resident@dev.local";
   const firstName = isDevAdmin ? "Dev" : "Dev";

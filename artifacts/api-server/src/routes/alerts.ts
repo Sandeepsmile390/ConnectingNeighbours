@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, alertsTable } from "@workspace/db";
+import { db, alertsTable, neighborhoodUsersTable, eq, desc } from "@workspace/db";
 import { CreateAlertBody } from "@workspace/api-zod";
 import { getOrCreateNeighborhoodUser } from "./users.js";
 
@@ -30,10 +30,22 @@ function formatAlert(a: any, reporter: any) {
 }
 
 router.get("/alerts", async (req, res) => {
-  const alerts = await db.query.alertsTable.findMany({
-    with: { reporter: true },
-  });
-  res.json(alerts.map(a => formatAlert(a, (a as any).reporter)));
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser || !nbUser.colonyId) {
+    res.json([]);
+    return;
+  }
+
+  const alerts = await db.select({
+    alert: alertsTable,
+    reporter: neighborhoodUsersTable
+  })
+  .from(alertsTable)
+  .innerJoin(neighborhoodUsersTable, eq(alertsTable.reporterId, neighborhoodUsersTable.id))
+  .where(eq(neighborhoodUsersTable.colonyId, nbUser.colonyId))
+  .orderBy(desc(alertsTable.createdAt));
+
+  res.json(alerts.map(a => formatAlert(a.alert, a.reporter)));
 });
 
 router.post("/alerts", async (req, res) => {

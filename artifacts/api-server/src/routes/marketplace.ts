@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, listingsTable, eq } from "@workspace/db";
+import { db, listingsTable, neighborhoodUsersTable, eq, desc } from "@workspace/db";
 import { CreateListingBody, ListListingsQueryParams, UpdateListingBody } from "@workspace/api-zod";
 import { getOrCreateNeighborhoodUser } from "./users.js";
 
@@ -34,15 +34,26 @@ function formatListing(l: any, seller: any) {
 
 router.get("/marketplace", async (req, res) => {
   const params = ListListingsQueryParams.parse(req.query);
-  const listings = await db.query.listingsTable.findMany({
-    with: { seller: true },
-  });
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser || !nbUser.colonyId) {
+    res.json([]);
+    return;
+  }
+
+  const listings = await db.select({
+    listing: listingsTable,
+    seller: neighborhoodUsersTable
+  })
+  .from(listingsTable)
+  .innerJoin(neighborhoodUsersTable, eq(listingsTable.sellerId, neighborhoodUsersTable.id))
+  .where(eq(neighborhoodUsersTable.colonyId, nbUser.colonyId))
+  .orderBy(desc(listingsTable.createdAt));
 
   const filtered = listings
-    .filter(l => !params.category || l.category === params.category)
-    .filter(l => !params.type || l.type === params.type);
+    .filter(l => !params.category || l.listing.category === params.category)
+    .filter(l => !params.type || l.listing.type === params.type);
 
-  res.json(filtered.map(l => formatListing(l, (l as any).seller)));
+  res.json(filtered.map(l => formatListing(l.listing, l.seller)));
 });
 
 router.post("/marketplace", async (req, res) => {

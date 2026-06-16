@@ -1,13 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  Image, Platform, Alert,
+  Image, Platform, Alert, Modal, TextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
+import { 
+  useListConversations, 
+  useListPendingMembers, 
+  useListAlerts,
+  getListConversationsQueryKey,
+  getListPendingMembersQueryKey,
+  getListAlertsQueryKey
+} from "@workspace/api-client-react";
 
 const MENU_ITEMS: { label: string; icon: keyof typeof Feather.glyphMap; route: string; desc: string }[] = [
   { label: "Members", icon: "users", route: "/members", desc: "Browse colony residents" },
@@ -28,6 +36,34 @@ export default function MoreScreen() {
   const router = useRouter();
   const { user, isAuthenticated, login, loginDev, logout } = useAuth();
 
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+
+  // Fetch count states
+  const { data: conversations } = useListConversations({
+    query: {
+      enabled: isAuthenticated && !!user,
+      refetchInterval: 5000,
+      queryKey: getListConversationsQueryKey()
+    }
+  });
+
+  const { data: pendingMembers } = useListPendingMembers({
+    query: {
+      enabled: isAuthenticated && !!user && user.isColonyAdmin === true,
+      refetchInterval: 5000,
+      queryKey: getListPendingMembersQueryKey()
+    }
+  });
+
+  const { data: alerts } = useListAlerts({
+    query: {
+      enabled: isAuthenticated && !!user,
+      refetchInterval: 5000,
+      queryKey: getListAlertsQueryKey()
+    }
+  });
+
   const webTopPad = Platform.OS === "web" ? 67 : 0;
   const webBotPad = Platform.OS === "web" ? 34 : 0;
 
@@ -38,110 +74,235 @@ export default function MoreScreen() {
     ]);
   };
 
+  const handleAdminDevLogin = () => {
+    if (Platform.OS === "ios") {
+      Alert.prompt(
+        "Admin Password Required",
+        "Please enter the password to log in as administrator:",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Login",
+            onPress: (pwd?: string) => {
+              if (pwd === "Admin@1234") {
+                loginDev("admin", pwd).catch(() => {
+                  Alert.alert("Error", "Admin login failed.");
+                });
+              } else {
+                Alert.alert("Error", "Incorrect admin password");
+              }
+            }
+          }
+        ],
+        "secure-text"
+      );
+    } else if (Platform.OS === "web") {
+      const pwd = window.prompt("Enter admin password:");
+      if (pwd === "Admin@1234") {
+        loginDev("admin", pwd);
+      } else if (pwd !== null) {
+        alert("Incorrect admin password");
+      }
+    } else {
+      // Android
+      setShowPasswordModal(true);
+    }
+  };
+
+  const getBadgeCount = (route: string) => {
+    if (route === "/chat") {
+      return conversations?.reduce((acc: number, c: any) => acc + (c.unreadCount || 0), 0) || 0;
+    }
+    if (route === "/colonies") {
+      return user?.isColonyAdmin ? (pendingMembers?.length || 0) : 0;
+    }
+    if (route === "/alerts") {
+      return alerts?.filter((a: any) => !a.isResolved && (a.severity === "emergency" || a.severity === "high")).length || 0;
+    }
+    return 0;
+  };
+
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={{ paddingTop: insets.top + webTopPad + 20, paddingBottom: 100 + webBotPad }}
-      showsVerticalScrollIndicator={false}
-    >
-      {isAuthenticated && user ? (
-        <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          {user.avatarUrl ? (
-            <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatarFallback, { backgroundColor: colors.primary + "22" }]}>
-              <Text style={[styles.avatarInitial, { color: colors.primary }]}>
-                {user.name.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          )}
-          <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: colors.foreground }]}>{user.name}</Text>
-            {user.apartment && (
-              <View style={styles.metaRow}>
-                <Feather name="map-pin" size={12} color={colors.mutedForeground} />
-                <Text style={[styles.metaText, { color: colors.mutedForeground }]}>{user.apartment}</Text>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingTop: insets.top + webTopPad + 20, paddingBottom: 100 + webBotPad }}
+        showsVerticalScrollIndicator={false}
+      >
+        {isAuthenticated && user ? (
+          <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {user.avatarUrl ? (
+              <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatarFallback, { backgroundColor: colors.primary + "22" }]}>
+                <Text style={[styles.avatarInitial, { color: colors.primary }]}>
+                  {user.name.charAt(0).toUpperCase()}
+                </Text>
               </View>
             )}
-            {user.bio && (
-              <Text style={[styles.bio, { color: colors.mutedForeground }]} numberOfLines={2}>{user.bio}</Text>
-            )}
-          </View>
-        </View>
-      ) : (
-        <View style={[styles.loginCard, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
-          <Feather name="user" size={32} color={colors.primary} />
-          <Text style={[styles.loginTitle, { color: colors.foreground }]}>Join Your Neighborhood</Text>
-          <Text style={[styles.loginDesc, { color: colors.mutedForeground }]}>
-            Sign in to post, RSVP to events, and connect with neighbors.
-          </Text>
-          <TouchableOpacity
-            style={[styles.loginBtn, { backgroundColor: colors.primary }]}
-            onPress={login}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.loginBtnText, { color: colors.primaryForeground }]}>Sign In with Replit</Text>
-          </TouchableOpacity>
-
-          <View style={styles.devLoginRow}>
-            <TouchableOpacity
-              style={[styles.devLoginBtn, { borderColor: colors.border }]}
-              onPress={() => loginDev("admin")}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.devLoginBtnText, { color: colors.foreground }]}>Test Admin</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.devLoginBtn, { borderColor: colors.border }]}
-              onPress={() => loginDev("resident")}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.devLoginBtnText, { color: colors.foreground }]}>Test Resident</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>EXPLORE</Text>
-      <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        {MENU_ITEMS.map((item, i) => (
-          <TouchableOpacity
-            key={item.route}
-            style={[
-              styles.menuItem,
-              i < MENU_ITEMS.length - 1 ? { borderBottomWidth: 1, borderBottomColor: colors.border } : {},
-            ]}
-            onPress={() => router.push(item.route as any)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.menuIconBox, { backgroundColor: colors.primary + "18" }]}>
-              <Feather name={item.icon} size={18} color={colors.primary} />
-            </View>
-            <View style={styles.menuText}>
-              <Text style={[styles.menuLabel, { color: colors.foreground }]}>{item.label}</Text>
-              <Text style={[styles.menuDesc, { color: colors.mutedForeground }]}>{item.desc}</Text>
-            </View>
-            <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {isAuthenticated && (
-        <>
-          <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>ACCOUNT</Text>
-          <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <TouchableOpacity style={styles.menuItem} onPress={handleLogout} activeOpacity={0.7}>
-              <View style={[styles.menuIconBox, { backgroundColor: colors.destructive + "18" }]}>
-                <Feather name="log-out" size={18} color={colors.destructive} />
+            <View style={styles.profileInfo}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <Text style={[styles.profileName, { color: colors.foreground }]}>{user.name}</Text>
+                {user.isColonyAdmin && (
+                  <View style={[styles.adminRoleBadge, { backgroundColor: "#F59E0B18" }]}>
+                    <Feather name="shield" size={10} color="#F59E0B" />
+                    <Text style={styles.adminRoleText}>Admin</Text>
+                  </View>
+                )}
               </View>
-              <Text style={[styles.menuLabel, { color: colors.destructive }]}>Sign Out</Text>
-            </TouchableOpacity>
+              {user.apartment && (
+                <View style={styles.metaRow}>
+                  <Feather name="map-pin" size={12} color={colors.mutedForeground} />
+                  <Text style={[styles.metaText, { color: colors.mutedForeground }]}>{user.apartment}</Text>
+                </View>
+              )}
+              {user.bio && (
+                <Text style={[styles.bio, { color: colors.mutedForeground }]} numberOfLines={2}>{user.bio}</Text>
+              )}
+            </View>
           </View>
-        </>
-      )}
+        ) : (
+          <View style={[styles.loginCard, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
+            <Feather name="user" size={32} color={colors.primary} />
+            <Text style={[styles.loginTitle, { color: colors.foreground }]}>Join Your Neighborhood</Text>
+            <Text style={[styles.loginDesc, { color: colors.mutedForeground }]}>
+              Sign in to post, RSVP to events, and connect with neighbors.
+            </Text>
+            <TouchableOpacity
+              style={[styles.loginBtn, { backgroundColor: colors.primary }]}
+              onPress={login}
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.loginBtnText, { color: colors.primaryForeground }]}>Sign In with Replit</Text>
+            </TouchableOpacity>
 
-      <Text style={[styles.appVersion, { color: colors.mutedForeground }]}>Connecting Neighbors · v1.0</Text>
-    </ScrollView>
+            <View style={styles.devLoginRow}>
+              <TouchableOpacity
+                style={[styles.devLoginBtn, { borderColor: colors.border }]}
+                onPress={handleAdminDevLogin}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.devLoginBtnText, { color: colors.foreground }]}>Test Admin</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.devLoginBtn, { borderColor: colors.border }]}
+                onPress={() => loginDev("resident")}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.devLoginBtnText, { color: colors.foreground }]}>Test Resident</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>EXPLORE</Text>
+        <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {MENU_ITEMS.map((item, i) => {
+            const badgeCount = getBadgeCount(item.route);
+            return (
+              <TouchableOpacity
+                key={item.route}
+                style={[
+                  styles.menuItem,
+                  i < MENU_ITEMS.length - 1 ? { borderBottomWidth: 1, borderBottomColor: colors.border } : {},
+                ]}
+                onPress={() => router.push(item.route as any)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.menuIconBox, { backgroundColor: colors.primary + "18" }]}>
+                  <Feather name={item.icon} size={18} color={colors.primary} />
+                </View>
+                <View style={styles.menuText}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <Text style={[styles.menuLabel, { color: colors.foreground }]}>{item.label}</Text>
+                    {badgeCount > 0 && (
+                      <View style={[styles.badge, { backgroundColor: colors.destructive }]}>
+                        <Text style={styles.badgeText}>{badgeCount}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.menuDesc, { color: colors.mutedForeground }]}>{item.desc}</Text>
+                </View>
+                <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {isAuthenticated && (
+          <>
+            <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>ACCOUNT</Text>
+            <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <TouchableOpacity style={styles.menuItem} onPress={handleLogout} activeOpacity={0.7}>
+                <View style={[styles.menuIconBox, { backgroundColor: colors.destructive + "18" }]}>
+                  <Feather name="log-out" size={18} color={colors.destructive} />
+                </View>
+                <Text style={[styles.menuLabel, { color: colors.destructive }]}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+
+        <Text style={[styles.appVersion, { color: colors.mutedForeground }]}>Connecting Neighbors · v1.0</Text>
+      </ScrollView>
+
+      {/* Admin Password Modal for Android */}
+      <Modal
+        visible={showPasswordModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowPasswordModal(false);
+          setPasswordInput("");
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.foreground }]}>Admin Verification</Text>
+            <Text style={[styles.modalDesc, { color: colors.mutedForeground }]}>
+              Please enter the administrator password:
+            </Text>
+            <TextInput
+              style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+              secureTextEntry
+              autoFocus
+              value={passwordInput}
+              onChangeText={setPasswordInput}
+              placeholder="Password"
+              placeholderTextColor={colors.mutedForeground}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalBtn, { borderColor: colors.border }]}
+                onPress={() => {
+                  setShowPasswordModal(false);
+                  setPasswordInput("");
+                }}
+              >
+                <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold" }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, { backgroundColor: colors.primary, borderWidth: 0 }]}
+                onPress={() => {
+                  if (passwordInput === "Admin@1234") {
+                    setShowPasswordModal(false);
+                    const pwd = passwordInput;
+                    setPasswordInput("");
+                    loginDev("admin", pwd).catch(() => {
+                      Alert.alert("Error", "Admin login failed.");
+                    });
+                  } else {
+                    Alert.alert("Error", "Incorrect admin password");
+                  }
+                }}
+              >
+                <Text style={{ color: colors.primaryForeground, fontFamily: "Inter_600SemiBold" }}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
@@ -155,10 +316,15 @@ const styles = StyleSheet.create({
   avatarFallback: { width: 60, height: 60, borderRadius: 30, alignItems: "center", justifyContent: "center" },
   avatarInitial: { fontSize: 24, fontFamily: "Inter_700Bold" },
   profileInfo: { flex: 1 },
-  profileName: { fontSize: 18, fontFamily: "Inter_700Bold", marginBottom: 4 },
-  metaRow: { flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 4 },
+  profileName: { fontSize: 18, fontFamily: "Inter_700Bold", marginBottom: 2 },
+  adminRoleBadge: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 7, paddingVertical: 2, borderRadius: 20, gap: 3,
+  },
+  adminRoleText: { fontSize: 10, fontFamily: "Inter_600SemiBold", color: "#F59E0B" },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 4, marginTop: 4 },
   metaText: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  bio: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },
+  bio: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18, marginTop: 2 },
   loginCard: {
     marginHorizontal: 16, borderRadius: 16, borderWidth: 1,
     padding: 24, alignItems: "center", gap: 8, marginBottom: 24,
@@ -181,4 +347,24 @@ const styles = StyleSheet.create({
   menuLabel: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   menuDesc: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 1 },
   appVersion: { textAlign: "center", fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 8 },
+  badge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 18,
+  },
+  badgeText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontFamily: "Inter_700Bold",
+  },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  modalContent: { width: "80%", padding: 20, borderRadius: 16, borderWidth: 1, gap: 14 },
+  modalTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  modalDesc: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  modalInput: { borderWidth: 1, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14, fontSize: 14, fontFamily: "Inter_400Regular" },
+  modalButtons: { flexDirection: "row", gap: 10, justifyContent: "flex-end", marginTop: 6 },
+  modalBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, borderWidth: 1, alignItems: "center", minWidth: 80 },
 });

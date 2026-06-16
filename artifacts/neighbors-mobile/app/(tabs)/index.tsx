@@ -1,13 +1,22 @@
 import React from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Platform, RefreshControl,
+  Platform, RefreshControl, TextInput, ActivityIndicator, Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useGetFeedStats, useGetRecentActivity, useListAlerts } from "@workspace/api-client-react";
+import { 
+  useGetFeedStats, 
+  useGetRecentActivity, 
+  useListAlerts,
+  useListColonies,
+  useCreateColony,
+  useJoinColony,
+  getListColoniesQueryKey
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { StatCard } from "@/components/StatCard";
 import { formatDistanceToNow } from "date-fns";
@@ -29,11 +38,30 @@ export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refetchUser } = useAuth();
+  const queryClient = useQueryClient();
+
+  const [activeTab, setActiveTab] = React.useState<"choose" | "admin" | "resident">("choose");
+  const [searchTerm, setSearchTerm] = React.useState("");
+  
+  // Create Form States
+  const [name, setName] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [address, setAddress] = React.useState("");
 
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGetFeedStats();
   const { data: activity, isLoading: actLoading, refetch: refetchActivity } = useGetRecentActivity();
   const { data: alerts = [], refetch: refetchAlerts } = useListAlerts();
+
+  // Onboarding Hooks
+  const { data: colonies, isLoading: coloniesLoading } = useListColonies({
+    query: {
+      enabled: !!user && !user.colonyId,
+      queryKey: getListColoniesQueryKey()
+    }
+  });
+  const createColony = useCreateColony();
+  const joinColony = useJoinColony();
 
   const [refreshing, setRefreshing] = React.useState(false);
   const onRefresh = async () => {
@@ -49,6 +77,211 @@ export default function HomeScreen() {
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   const activeEmergencyAlerts = alerts.filter(a => !a.isResolved && (a.severity === "emergency" || a.severity === "high"));
+
+  if (user && !user.colonyId) {
+    const handleRegister = async () => {
+      if (!name.trim() || !description.trim() || !address.trim()) {
+        Alert.alert("Missing Fields", "Please fill in all colony fields");
+        return;
+      }
+      try {
+        await createColony.mutateAsync({
+          data: {
+            name: name.trim(),
+            description: description.trim(),
+            address: address.trim()
+          }
+        });
+        Alert.alert("Success", "Colony Registered successfully!");
+        setName("");
+        setDescription("");
+        setAddress("");
+        setActiveTab("choose");
+        await refetchUser();
+      } catch (err: any) {
+        Alert.alert("Error", err.message || "Failed to create colony");
+      }
+    };
+
+    const handleJoin = async (colId: number) => {
+      try {
+        await joinColony.mutateAsync({
+          data: { colonyId: colId }
+        });
+        Alert.alert("Success", "Join request submitted. Pending admin approval.");
+        await refetchUser();
+      } catch (err: any) {
+        Alert.alert("Error", err.message || "Failed to join colony");
+      }
+    };
+
+    const filteredColonies = colonies?.filter(c => 
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      c.address.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+      <ScrollView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        contentContainerStyle={{ paddingTop: insets.top + webTopPad + 30, paddingHorizontal: 20, paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={{ marginBottom: 20 }}>
+          <Feather name="map-pin" size={48} color={colors.primary} style={{ alignSelf: "center", marginBottom: 12 }} />
+          <Text style={{ fontSize: 24, fontWeight: "bold", color: colors.foreground, textAlign: "center" }}>Setup Your Colony</Text>
+          <Text style={{ fontSize: 14, color: colors.mutedForeground, textAlign: "center", marginTop: 4, marginHorizontal: 20 }}>
+            To access the neighborhood portal, you must register a new colony as an Admin, or join an existing one as a Resident.
+          </Text>
+        </View>
+
+        {activeTab === "choose" && (
+          <View style={{ gap: 16, marginTop: 10 }}>
+            {/* Admin choice */}
+            <TouchableOpacity 
+              style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 20, borderRadius: 16 }}
+              onPress={() => setActiveTab("admin")}
+              activeOpacity={0.8}
+            >
+              <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: colors.primary + "18", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+                <Feather name="home" size={20} color={colors.primary} />
+              </View>
+              <Text style={{ fontSize: 16, fontWeight: "bold", color: colors.foreground }}>Become a Colony Admin</Text>
+              <Text style={{ fontSize: 12, color: colors.mutedForeground, marginTop: 4, lineHeight: 16 }}>
+                Register a new colony. You will approve residency requests, manage safety alerts, and configure the neighborhood directory.
+              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 12, gap: 4 }}>
+                <Text style={{ fontSize: 13, fontWeight: "bold", color: colors.primary }}>Register colony</Text>
+                <Feather name="arrow-right" size={13} color={colors.primary} />
+              </View>
+            </TouchableOpacity>
+
+            {/* Resident choice */}
+            <TouchableOpacity 
+              style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 20, borderRadius: 16 }}
+              onPress={() => setActiveTab("resident")}
+              activeOpacity={0.8}
+            >
+              <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: colors.primary + "18", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+                <Feather name="users" size={20} color={colors.primary} />
+              </View>
+              <Text style={{ fontSize: 16, fontWeight: "bold", color: colors.foreground }}>Join as a Resident</Text>
+              <Text style={{ fontSize: 12, color: colors.mutedForeground, marginTop: 4, lineHeight: 16 }}>
+                Search and join an existing colony. Participate in discussions, trade listings, view alerts, and message neighbors.
+              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 12, gap: 4 }}>
+                <Text style={{ fontSize: 13, fontWeight: "bold", color: colors.primary }}>Search colonies</Text>
+                <Feather name="arrow-right" size={13} color={colors.primary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {activeTab === "admin" && (
+          <View style={{ backgroundColor: colors.card, padding: 20, borderRadius: 16, borderWidth: 1, borderColor: colors.border, gap: 12, marginTop: 10 }}>
+            <Text style={{ fontSize: 16, fontWeight: "bold", color: colors.foreground }}>Register New Colony</Text>
+            
+            <View style={{ gap: 4 }}>
+              <Text style={{ fontSize: 12, fontWeight: "600", color: colors.mutedForeground }}>Colony Name</Text>
+              <TextInput
+                style={{ borderWidth: 1, borderColor: colors.border, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, color: colors.foreground, backgroundColor: colors.background }}
+                placeholder="e.g. Skyline Residency"
+                placeholderTextColor={colors.mutedForeground}
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
+
+            <View style={{ gap: 4 }}>
+              <Text style={{ fontSize: 12, fontWeight: "600", color: colors.mutedForeground }}>Address / Location</Text>
+              <TextInput
+                style={{ borderWidth: 1, borderColor: colors.border, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, color: colors.foreground, backgroundColor: colors.background }}
+                placeholder="e.g. Sector 5, Dwarka"
+                placeholderTextColor={colors.mutedForeground}
+                value={address}
+                onChangeText={setAddress}
+              />
+            </View>
+
+            <View style={{ gap: 4 }}>
+              <Text style={{ fontSize: 12, fontWeight: "600", color: colors.mutedForeground }}>Short Description</Text>
+              <TextInput
+                style={{ borderWidth: 1, borderColor: colors.border, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, color: colors.foreground, backgroundColor: colors.background, minHeight: 60 }}
+                placeholder="e.g. Quiet neighborhood with 150 flats..."
+                placeholderTextColor={colors.mutedForeground}
+                multiline
+                value={description}
+                onChangeText={setDescription}
+              />
+            </View>
+
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
+              <TouchableOpacity 
+                style={{ flex: 1, paddingVertical: 10, borderWidth: 1, borderColor: colors.border, borderRadius: 10, alignItems: "center" }}
+                onPress={() => setActiveTab("choose")}
+              >
+                <Text style={{ color: colors.foreground, fontWeight: "600" }}>Back</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={{ flex: 1, paddingVertical: 10, backgroundColor: colors.primary, borderRadius: 10, alignItems: "center" }}
+                onPress={handleRegister}
+              >
+                <Text style={{ color: colors.primaryForeground, fontWeight: "600" }}>Register</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {activeTab === "resident" && (
+          <View style={{ backgroundColor: colors.card, padding: 20, borderRadius: 16, borderWidth: 1, borderColor: colors.border, gap: 12, marginTop: 10 }}>
+            <Text style={{ fontSize: 16, fontWeight: "bold", color: colors.foreground }}>Search Colonies</Text>
+            
+            <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: colors.border, borderRadius: 10, paddingHorizontal: 10, backgroundColor: colors.background }}>
+              <Feather name="search" size={14} color={colors.mutedForeground} style={{ marginRight: 6 }} />
+              <TextInput
+                style={{ flex: 1, paddingVertical: 8, color: colors.foreground }}
+                placeholder="Search by name or address..."
+                placeholderTextColor={colors.mutedForeground}
+                value={searchTerm}
+                onChangeText={setSearchTerm}
+              />
+            </View>
+
+            {coloniesLoading ? (
+              <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 10 }} />
+            ) : filteredColonies && filteredColonies.length > 0 ? (
+              <ScrollView style={{ maxHeight: 200, gap: 8 }} nestedScrollEnabled>
+                {filteredColonies.map((colony) => (
+                  <View key={colony.id} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: colors.border }}>
+                    <View style={{ flex: 1, marginRight: 10 }}>
+                      <Text style={{ fontSize: 14, fontWeight: "bold", color: colors.foreground }}>{colony.name}</Text>
+                      <Text style={{ fontSize: 11, color: colors.mutedForeground, marginTop: 2 }}>{colony.address}</Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={{ paddingVertical: 6, paddingHorizontal: 12, backgroundColor: colors.primary, borderRadius: 6 }}
+                      onPress={() => handleJoin(colony.id)}
+                    >
+                      <Text style={{ color: colors.primaryForeground, fontSize: 12, fontWeight: "bold" }}>Join</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            ) : (
+              <Text style={{ fontSize: 12, color: colors.mutedForeground, textAlign: "center", marginVertical: 10 }}>
+                No colonies match your search.
+              </Text>
+            )}
+
+            <TouchableOpacity 
+              style={{ paddingVertical: 10, borderWidth: 1, borderColor: colors.border, borderRadius: 10, alignItems: "center", marginTop: 6 }}
+              onPress={() => setActiveTab("choose")}
+            >
+              <Text style={{ color: colors.foreground, fontWeight: "600" }}>Back</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView

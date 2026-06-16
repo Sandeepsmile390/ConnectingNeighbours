@@ -37,7 +37,14 @@ export default function Login() {
                   variant="outline" 
                   size="sm" 
                   className="flex-1 text-xs hover:bg-muted" 
-                  onClick={() => window.location.href = "/api/auth/dev-login?role=admin"}
+                  onClick={() => {
+                    const pwd = prompt("Enter admin password:");
+                    if (pwd === "Admin@1234") {
+                      window.location.href = `/api/auth/dev-login?role=admin&password=${encodeURIComponent(pwd)}`;
+                    } else if (pwd !== null) {
+                      alert("Incorrect admin password");
+                    }
+                  }}
                 >
                   Login as Admin
                 </Button>

@@ -8,6 +8,15 @@ import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+import { useAuth } from "@/contexts/AuthContext";
+import { 
+  useListConversations, 
+  useListPendingMembers, 
+  useListAlerts,
+  getListConversationsQueryKey,
+  getListPendingMembersQueryKey,
+  getListAlertsQueryKey
+} from "@workspace/api-client-react";
 
 function NativeTabLayout() {
   return (
@@ -42,6 +51,39 @@ function ClassicTabLayout() {
   const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
+
+  const { user, isAuthenticated } = useAuth();
+
+  // Fetch count states
+  const { data: conversations } = useListConversations({
+    query: {
+      enabled: isAuthenticated && !!user,
+      refetchInterval: 5000,
+      queryKey: getListConversationsQueryKey()
+    }
+  });
+
+  const { data: pendingMembers } = useListPendingMembers({
+    query: {
+      enabled: isAuthenticated && !!user && user.isColonyAdmin === true,
+      refetchInterval: 5000,
+      queryKey: getListPendingMembersQueryKey()
+    }
+  });
+
+  const { data: alerts } = useListAlerts({
+    query: {
+      enabled: isAuthenticated && !!user,
+      refetchInterval: 5000,
+      queryKey: getListAlertsQueryKey()
+    }
+  });
+
+  const unreadMessagesCount = conversations?.reduce((acc: number, c: any) => acc + (c.unreadCount || 0), 0) || 0;
+  const pendingRequestsCount = user?.isColonyAdmin ? (pendingMembers?.length || 0) : 0;
+  const activeAlertsCount = alerts?.filter((a: any) => !a.isResolved && (a.severity === "emergency" || a.severity === "high")).length || 0;
+
+  const totalUnseen = unreadMessagesCount + pendingRequestsCount + activeAlertsCount;
 
   return (
     <Tabs
@@ -109,6 +151,7 @@ function ClassicTabLayout() {
           title: "More",
           tabBarIcon: ({ color }) =>
             isIOS ? <SymbolView name="ellipsis.circle" tintColor={color} size={24} /> : <Feather name="more-horizontal" size={22} color={color} />,
+          tabBarBadge: totalUnseen > 0 ? totalUnseen : undefined,
         }}
       />
     </Tabs>

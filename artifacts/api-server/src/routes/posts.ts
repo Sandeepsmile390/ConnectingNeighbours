@@ -35,16 +35,24 @@ function formatPost(post: any, author: any, isLikedByMe: boolean) {
 router.get("/posts", async (req, res) => {
   const params = ListPostsQueryParams.parse(req.query);
   const nbUser = await getOrCreateNeighborhoodUser(req);
-  const myId = nbUser?.id;
+  if (!nbUser || !nbUser.colonyId) {
+    res.json([]);
+    return;
+  }
+  const myId = nbUser.id;
 
-  const posts = await db.query.postsTable.findMany({
-    orderBy: [desc(postsTable.createdAt)],
-    limit: params.limit ?? 50,
-    offset: params.offset ?? 0,
-    with: { author: true },
-  });
+  const posts = await db.select({
+    post: postsTable,
+    author: neighborhoodUsersTable
+  })
+  .from(postsTable)
+  .innerJoin(neighborhoodUsersTable, eq(postsTable.authorId, neighborhoodUsersTable.id))
+  .where(eq(neighborhoodUsersTable.colonyId, nbUser.colonyId))
+  .orderBy(desc(postsTable.createdAt))
+  .limit(params.limit ?? 50)
+  .offset(params.offset ?? 0);
 
-  const postIds = posts.map(p => p.id);
+  const postIds = posts.map(p => p.post.id);
   const myLikes = myId && postIds.length > 0
     ? await db.select({ postId: postLikesTable.postId }).from(postLikesTable)
         .where(eq(postLikesTable.userId, myId))
@@ -52,8 +60,8 @@ router.get("/posts", async (req, res) => {
   const likedSet = new Set(myLikes.map(l => l.postId));
 
   const result = posts
-    .filter(p => !params.category || p.category === params.category)
-    .map(p => formatPost(p, (p as any).author, likedSet.has(p.id)));
+    .filter(p => !params.category || p.post.category === params.category)
+    .map(p => formatPost(p.post, p.author, likedSet.has(p.post.id)));
 
   res.json(result);
 });
