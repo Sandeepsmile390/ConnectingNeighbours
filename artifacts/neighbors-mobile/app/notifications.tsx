@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Platform, ActivityIndicator, Alert,
+  Platform, ActivityIndicator, Alert, Linking,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Feather } from "@expo/vector-icons";
@@ -31,6 +31,27 @@ export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  const DOMAIN = process.env.EXPO_PUBLIC_DOMAIN || "connecting-neighbours-apiserver.vercel.app";
+  const CURRENT_VERSION = "1.0.0";
+  const [updateInfo, setUpdateInfo] = useState<{ latestVersion: string; apkUrl: string; releaseNotes: string } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const fetchUpdateInfo = async () => {
+      try {
+        const res = await fetch(`https://${DOMAIN}/api/app-version`);
+        if (res.ok) {
+          const data = await res.json();
+          if (active && data.latestVersion !== CURRENT_VERSION) {
+            setUpdateInfo(data);
+          }
+        }
+      } catch {}
+    };
+    fetchUpdateInfo();
+    return () => { active = false; };
+  }, []);
 
   const { data: pendingMembers = [], isLoading: membersLoading } = useListPendingMembers({
     query: {
@@ -83,6 +104,36 @@ export default function NotificationsScreen() {
       }}
       showsVerticalScrollIndicator={false}
     >
+      {/* Update Available Banner */}
+      {updateInfo && (
+        <View style={[styles.updateBanner, { backgroundColor: colors.primary + "12", borderColor: colors.primary }]}>
+          <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
+            <View style={[styles.updateIconBox, { backgroundColor: colors.primary }]}>
+              <Feather name="download" size={16} color={colors.primaryForeground} />
+            </View>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={{ fontSize: 14, fontWeight: "bold", color: colors.foreground }}>
+                App Update Available! (v{updateInfo.latestVersion})
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.mutedForeground, lineHeight: 16 }}>
+                {updateInfo.releaseNotes || "A newer version of the app is available with bug fixes and improvements."}
+              </Text>
+              <TouchableOpacity
+                style={[styles.downloadBtn, { backgroundColor: colors.primary }]}
+                onPress={() => {
+                  if (updateInfo.apkUrl) {
+                    Linking.openURL(updateInfo.apkUrl);
+                  }
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: colors.primaryForeground, fontSize: 12, fontWeight: "bold" }}>Download APK Now</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* Residency Requests for Admins */}
       {user?.isColonyAdmin && (
         <View style={{ marginBottom: 24 }}>
@@ -203,6 +254,28 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  updateBanner: {
+    padding: 16,
+    borderWidth: 1,
+    borderRadius: 16,
+    marginBottom: 20,
+  },
+  updateIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  downloadBtn: {
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignSelf: "flex-start",
     alignItems: "center",
     justifyContent: "center",
   },

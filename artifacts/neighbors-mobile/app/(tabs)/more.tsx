@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  Image, Platform, Alert, Modal, TextInput,
+  Image, Platform, Alert, Modal, TextInput, Linking, ActivityIndicator,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -36,17 +36,53 @@ export default function MoreScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, isAuthenticated, login, loginDev, logout, refetchUser } = useAuth();
+  const { user, isAuthenticated, login, logout, refetchUser } = useAuth();
   const { theme, setTheme } = useTheme();
 
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showGoogleAdminPasswordModal, setShowGoogleAdminPasswordModal] = useState(false);
   const [showPromotionPasswordModal, setShowPromotionPasswordModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [promotionPasswordInput, setPromotionPasswordInput] = useState("");
+  const [checkingUpdates, setCheckingUpdates] = useState(false);
 
   const DOMAIN = process.env.EXPO_PUBLIC_DOMAIN || "connecting-neighbours-apiserver.vercel.app";
+
+  const checkAppUpdates = async (showSuccessAlert = true) => {
+    setCheckingUpdates(true);
+    try {
+      const res = await fetch(`https://${DOMAIN}/api/app-version`);
+      if (res.ok) {
+        const data = await res.json();
+        const CURRENT_VERSION = "1.0.0";
+        if (data.latestVersion !== CURRENT_VERSION) {
+          Alert.alert(
+            "Update Available!",
+            `Version ${data.latestVersion} is available.\n\nRelease Notes: ${data.releaseNotes}`,
+            [
+              { text: "Later", style: "cancel" },
+              { 
+                text: "Download APK", 
+                onPress: () => {
+                  Linking.openURL(data.apkUrl);
+                } 
+              }
+            ]
+          );
+        } else if (showSuccessAlert) {
+          Alert.alert("Up to Date", `You are on the latest version (${CURRENT_VERSION}).`);
+        }
+      } else if (showSuccessAlert) {
+        Alert.alert("Error", "Could not fetch latest version information.");
+      }
+    } catch (err) {
+      if (showSuccessAlert) {
+        Alert.alert("Error", "Failed to contact update server.");
+      }
+    } finally {
+      setCheckingUpdates(false);
+    }
+  };
 
   // Fetch count states
   const { data: conversations } = useListConversations({
@@ -83,40 +119,7 @@ export default function MoreScreen() {
     ]);
   };
 
-  const handleAdminDevLogin = () => {
-    if (Platform.OS === "ios") {
-      Alert.prompt(
-        "Admin Password Required",
-        "Please enter the password to log in as administrator:",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Login",
-            onPress: (pwd?: string) => {
-              if (pwd === "Admin@1234") {
-                loginDev("admin", pwd).catch(() => {
-                  Alert.alert("Error", "Admin login failed.");
-                });
-              } else {
-                Alert.alert("Error", "Incorrect admin password");
-              }
-            }
-          }
-        ],
-        "secure-text"
-      );
-    } else if (Platform.OS === "web") {
-      const pwd = window.prompt("Enter admin password:");
-      if (pwd === "Admin@1234") {
-        loginDev("admin", pwd);
-      } else if (pwd !== null) {
-        alert("Incorrect admin password");
-      }
-    } else {
-      // Android
-      setShowPasswordModal(true);
-    }
-  };
+
 
   const handleGoogleAdminLogin = () => {
     if (Platform.OS === "ios") {
@@ -303,26 +306,7 @@ export default function MoreScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Developer Simulated Logins */}
-            <View style={{ width: "100%", marginTop: 16, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 16 }}>
-              <Text style={{ fontSize: 11, fontFamily: "Inter_700Bold", color: colors.mutedForeground, textAlign: "center", marginBottom: 8, letterSpacing: 0.5 }}>
-                DEVELOPER SIMULATED LOGINS
-              </Text>
-              <View style={{ flexDirection: "row", gap: 10 }}>
-                <TouchableOpacity
-                  style={[styles.devLoginBtn, { borderColor: colors.primary }]}
-                  onPress={handleAdminDevLogin}
-                >
-                  <Text style={[styles.devLoginBtnText, { color: colors.primary }]}>Dev Admin</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.devLoginBtn, { borderColor: colors.primary }]}
-                  onPress={() => loginDev("resident")}
-                >
-                  <Text style={[styles.devLoginBtnText, { color: colors.primary }]}>Dev Resident</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+
           </View>
         )}
 
@@ -406,65 +390,32 @@ export default function MoreScreen() {
           </>
         )}
 
+        <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>ABOUT APP</Text>
+        <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border, marginBottom: 16 }]}>
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={() => checkAppUpdates(true)} 
+            activeOpacity={0.7}
+          >
+            <View style={[styles.menuIconBox, { backgroundColor: colors.primary + "18" }]}>
+              <Feather name="download" size={18} color={colors.primary} />
+            </View>
+            <View style={styles.menuText}>
+              <Text style={[styles.menuLabel, { color: colors.foreground }]}>Check for Updates</Text>
+              <Text style={[styles.menuDesc, { color: colors.mutedForeground }]}>Check if a newer app version is available</Text>
+            </View>
+            {checkingUpdates ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+            )}
+          </TouchableOpacity>
+        </View>
+
         <Text style={[styles.appVersion, { color: colors.mutedForeground }]}>Connecting Neighbors · v1.0</Text>
       </ScrollView>
 
-      {/* Admin Password Modal for Android */}
-      <Modal
-        visible={showPasswordModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => {
-          setShowPasswordModal(false);
-          setPasswordInput("");
-        }}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.modalTitle, { color: colors.foreground }]}>Admin Verification</Text>
-            <Text style={[styles.modalDesc, { color: colors.mutedForeground }]}>
-              Please enter the administrator password:
-            </Text>
-            <TextInput
-              style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
-              secureTextEntry
-              autoFocus
-              value={passwordInput}
-              onChangeText={setPasswordInput}
-              placeholder="Password"
-              placeholderTextColor={colors.mutedForeground}
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalBtn, { borderColor: colors.border }]}
-                onPress={() => {
-                  setShowPasswordModal(false);
-                  setPasswordInput("");
-                }}
-              >
-                <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold" }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalBtn, { backgroundColor: colors.primary, borderWidth: 0 }]}
-                onPress={() => {
-                  if (passwordInput === "Admin@1234") {
-                    setShowPasswordModal(false);
-                    const pwd = passwordInput;
-                    setPasswordInput("");
-                    loginDev("admin", pwd).catch(() => {
-                      Alert.alert("Error", "Admin login failed.");
-                    });
-                  } else {
-                    Alert.alert("Error", "Incorrect admin password");
-                  }
-                }}
-              >
-                <Text style={{ color: colors.primaryForeground, fontFamily: "Inter_600SemiBold" }}>Login</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+
 
       {/* Google Admin Password Modal for Android */}
       <Modal

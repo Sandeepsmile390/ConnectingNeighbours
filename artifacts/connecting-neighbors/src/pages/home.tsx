@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { 
   useGetFeedStats, 
   useGetRecentActivity, 
@@ -20,6 +21,24 @@ export default function Home() {
   const { data: alerts } = useListAlerts({ query: { queryKey: getListAlertsQueryKey() } });
   const { data: stats, isLoading: statsLoading } = useGetFeedStats({ query: { queryKey: getGetFeedStatsQueryKey() } });
   const { data: activity, isLoading: activityLoading } = useGetRecentActivity({ query: { queryKey: getGetRecentActivityQueryKey() } });
+
+  const [apkUrl, setApkUrl] = useState("https://connecting-neighbours-apiserver.vercel.app/download/app-latest.apk");
+  const [appVersion, setAppVersion] = useState("1.0.1");
+
+  useEffect(() => {
+    fetch("/api/app-version")
+      .then((res) => {
+        if (res.ok) return res.json();
+        return null;
+      })
+      .then((data) => {
+        if (data) {
+          if (data.apkUrl) setApkUrl(data.apkUrl);
+          if (data.latestVersion) setAppVersion(data.latestVersion);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const statCards = [
     { title: "Members", value: stats?.totalMembers, icon: Users, href: "/members", color: "text-blue-500" },
@@ -254,6 +273,39 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Android APK Download Card */}
+      <Card className="border-emerald-500/20 bg-gradient-to-r from-emerald-500/[0.02] via-teal-500/[0.02] to-cyan-500/[0.02] shadow-sm overflow-hidden mt-6">
+        <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4 text-left">
+            <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 shadow-sm shadow-emerald-500/10">
+              <svg className="h-6 w-6 fill-current" viewBox="0 0 24 24">
+                <path d="M17.5 12c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5m-11 0c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5m11.33-4.5L19.2 5.2a.498.498 0 0 0-.08-.7c-.22-.16-.52-.11-.69.1L16.92 6.5C15.42 5.82 13.76 5.43 12 5.43c-1.76 0-3.42.39-4.92 1.07L5.57 4.6a.512.512 0 0 0-.7-.1c-.2.16-.25.46-.09.68L6.17 7.5C2.7 9.4 1.33 13 1.1 17h21.8c-.23-4-1.6-7.6-5.07-9.5" />
+              </svg>
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
+                Download the Android App
+                <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  v{appVersion} Available
+                </span>
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-xl">
+                Stay updated on the go! Install our native Android app to receive instant community alerts, push notifications, and access safety features anywhere.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0">
+            <a 
+              href={apkUrl}
+              download
+              className="inline-flex items-center justify-center rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm px-6 py-3 transition-colors shadow-md shadow-emerald-600/10 cursor-pointer text-center"
+            >
+              Download APK Now
+            </a>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* About the App Section */}
       <Card className="border-muted/50 bg-gradient-to-r from-purple-500/[0.02] via-indigo-500/[0.02] to-blue-500/[0.02] shadow-sm overflow-hidden mt-6">

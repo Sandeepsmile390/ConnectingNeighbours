@@ -14,6 +14,7 @@ import feedbackRouter from "./feedback.js";
 import aiRouter from "./ai.js";
 import coloniesRouter from "./colonies.js";
 import hostelsRouter from "./hostels.js";
+import appVersionRouter from "./app-version.js";
 
 const router = Router();
 
@@ -32,5 +33,6 @@ router.use(feedbackRouter);
 router.use(aiRouter);
 router.use(coloniesRouter);
 router.use(hostelsRouter);
+router.use(appVersionRouter);
 
 export default router;

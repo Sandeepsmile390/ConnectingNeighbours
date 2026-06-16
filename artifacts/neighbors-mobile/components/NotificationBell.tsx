@@ -17,6 +17,28 @@ export function NotificationBell() {
   const router = useRouter();
   const { user } = useAuth();
   const [lastSeenTime, setLastSeenTime] = useState<number>(Date.now());
+  const [hasUpdate, setHasUpdate] = useState(false);
+
+  const DOMAIN = process.env.EXPO_PUBLIC_DOMAIN || "connecting-neighbours-apiserver.vercel.app";
+  const CURRENT_VERSION = "1.0.0";
+
+  // Check for app updates
+  useEffect(() => {
+    let active = true;
+    const checkUpdates = async () => {
+      try {
+        const res = await fetch(`https://${DOMAIN}/api/app-version`);
+        if (res.ok) {
+          const data = await res.json();
+          if (active && data.latestVersion !== CURRENT_VERSION) {
+            setHasUpdate(true);
+          }
+        }
+      } catch {}
+    };
+    checkUpdates();
+    return () => { active = false; };
+  }, []);
 
   // Load last seen notifications time
   useEffect(() => {
@@ -53,7 +75,7 @@ export function NotificationBell() {
     (a: any) => new Date(a.createdAt).getTime() > lastSeenTime
   ).length;
 
-  const unseenCount = pendingCount + newActivityCount;
+  const unseenCount = pendingCount + newActivityCount + (hasUpdate ? 1 : 0);
 
   if (!user?.colonyId) return null;
 
