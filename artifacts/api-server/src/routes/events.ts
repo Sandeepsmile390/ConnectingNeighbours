@@ -24,6 +24,7 @@ function formatEvent(e: any, organizer: any, isRsvpedByMe: boolean) {
     title: e.title,
     description: e.description,
     location: e.location,
+    imageUrl: e.imageUrl,
     startsAt: e.startsAt,
     endsAt: e.endsAt,
     rsvpCount: e.rsvpCount,

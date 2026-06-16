@@ -7,7 +7,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useListAlerts, useCreateAlert } from "@workspace/api-client-react";
+import { useListAlerts, useCreateAlert, useResolveAlert } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertCard } from "@/components/AlertCard";
@@ -28,7 +28,7 @@ export default function AlertsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, user } = useAuth();
 
   const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState("");
@@ -38,6 +38,7 @@ export default function AlertsScreen() {
 
   const { data: alerts = [], isLoading, refetch } = useListAlerts();
   const createMutation = useCreateAlert();
+  const resolveMutation = useResolveAlert();
 
   const webBotPad = Platform.OS === "web" ? 34 : 0;
 
@@ -63,12 +64,29 @@ export default function AlertsScreen() {
     }
   };
 
+  const handleResolve = async (id: number) => {
+    try {
+      await resolveMutation.mutateAsync({ id });
+      await qc.invalidateQueries();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      Alert.alert("Error", "Failed to resolve alert");
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={isLoading ? [] : alerts}
         keyExtractor={(a) => String(a.id)}
-        renderItem={({ item }) => <AlertCard alert={item} />}
+        renderItem={({ item }) => (
+          <AlertCard 
+            alert={item} 
+            currentUserId={user?.id} 
+            isColonyAdmin={user?.isColonyAdmin} 
+            onResolve={handleResolve} 
+          />
+        )}
         ListHeaderComponent={
           <View style={[styles.bannerHeader, { backgroundColor: "#EF444412", borderBottomColor: "#EF444430" }]}>
             <View style={styles.bannerLeft}>

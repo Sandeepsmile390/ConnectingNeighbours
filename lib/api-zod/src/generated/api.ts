@@ -474,6 +474,7 @@ export const ListEventsResponseItem = zod.object({
   title: zod.string(),
   description: zod.string(),
   location: zod.string(),
+  imageUrl: zod.string().nullish(),
   startsAt: zod.coerce.date(),
   endsAt: zod.coerce.date().nullish(),
   rsvpCount: zod.number(),
@@ -489,6 +490,7 @@ export const CreateEventBody = zod.object({
   title: zod.string(),
   description: zod.string(),
   location: zod.string(),
+  imageUrl: zod.string().nullish(),
   startsAt: zod.coerce.date(),
   endsAt: zod.coerce.date().optional(),
 });
@@ -526,6 +528,7 @@ export const GetEventResponse = zod.object({
   title: zod.string(),
   description: zod.string(),
   location: zod.string(),
+  imageUrl: zod.string().nullish(),
   startsAt: zod.coerce.date(),
   endsAt: zod.coerce.date().nullish(),
   rsvpCount: zod.number(),
@@ -586,6 +589,43 @@ export const CreateAlertBody = zod.object({
   title: zod.string(),
   description: zod.string(),
   severity: zod.enum(["low", "medium", "high", "emergency"]),
+});
+
+/**
+ * @summary Mark a safety alert as resolved
+ */
+export const ResolveAlertParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ResolveAlertResponse = zod.object({
+  id: zod.number(),
+  reporterId: zod.number(),
+  reporter: zod.object({
+    id: zod.number(),
+    replitId: zod.string(),
+    name: zod.string(),
+    username: zod.string(),
+    bio: zod.string().nullish(),
+    apartment: zod.string().nullish(),
+    avatarUrl: zod.string().nullish(),
+    phone: zod.string().nullish(),
+    isVerified: zod.boolean(),
+    joinedAt: zod.coerce.date(),
+    colonyId: zod.number().nullish(),
+    isColonyAdmin: zod.boolean(),
+    isColonyApproved: zod.boolean(),
+    twitterUrl: zod.string().nullish(),
+    facebookUrl: zod.string().nullish(),
+    linkedinUrl: zod.string().nullish(),
+    instagramUrl: zod.string().nullish(),
+    githubUrl: zod.string().nullish(),
+  }),
+  title: zod.string(),
+  description: zod.string(),
+  severity: zod.enum(["low", "medium", "high", "emergency"]),
+  isResolved: zod.boolean(),
+  createdAt: zod.coerce.date(),
 });
 
 /**
@@ -790,6 +830,18 @@ export const ListMessagesResponseItem = zod.object({
 export const ListMessagesResponse = zod.array(ListMessagesResponseItem);
 
 /**
+ * @summary Clear all chat history with a neighbor
+ */
+export const ClearChatHistoryParams = zod.object({
+  neighborId: zod.coerce.number(),
+});
+
+export const ClearChatHistoryResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
  * @summary Send a direct message
  */
 export const SendMessageBody = zod.object({
@@ -886,6 +938,28 @@ export const CreateColonyBody = zod.object({
   name: zod.string(),
   description: zod.string(),
   address: zod.string(),
+});
+
+/**
+ * @summary Update colony details (admin only)
+ */
+export const UpdateColonyParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateColonyBody = zod.object({
+  name: zod.string(),
+  description: zod.string(),
+  address: zod.string(),
+});
+
+export const UpdateColonyResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  address: zod.string(),
+  createdById: zod.number(),
+  createdAt: zod.coerce.date(),
 });
 
 /**

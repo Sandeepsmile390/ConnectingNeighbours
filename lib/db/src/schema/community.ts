@@ -77,6 +77,7 @@ export const eventsTable = pgTable("events", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description").notNull(),
   location: varchar("location", { length: 255 }).notNull(),
+  imageUrl: text("image_url"),
   startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
   endsAt: timestamp("ends_at", { withTimezone: true }),
   rsvpCount: integer("rsvp_count").notNull().default(0),

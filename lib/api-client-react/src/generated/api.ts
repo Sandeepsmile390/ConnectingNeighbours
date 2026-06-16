@@ -21,6 +21,7 @@ import type {
   AiQueryBody,
   AiQueryResponse,
   Alert,
+  ClearChatHistory200,
   Colony,
   Comment,
   CommunityStats,
@@ -1784,6 +1785,90 @@ export const useCreateAlert = <
 };
 
 /**
+ * @summary Mark a safety alert as resolved
+ */
+export const getResolveAlertUrl = (id: number) => {
+  return `/api/alerts/${id}/resolve`;
+};
+
+export const resolveAlert = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Alert> => {
+  return customFetch<Alert>(getResolveAlertUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getResolveAlertMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resolveAlert>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof resolveAlert>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["resolveAlert"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof resolveAlert>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return resolveAlert(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ResolveAlertMutationResult = NonNullable<
+  Awaited<ReturnType<typeof resolveAlert>>
+>;
+
+export type ResolveAlertMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Mark a safety alert as resolved
+ */
+export const useResolveAlert = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resolveAlert>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof resolveAlert>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getResolveAlertMutationOptions(options));
+};
+
+/**
  * @summary List shared resources (rides, items, services)
  */
 export const getListResourcesUrl = (params?: ListResourcesParams) => {
@@ -2619,6 +2704,90 @@ export function useListMessages<
 }
 
 /**
+ * @summary Clear all chat history with a neighbor
+ */
+export const getClearChatHistoryUrl = (neighborId: number) => {
+  return `/api/messages/clear/${neighborId}`;
+};
+
+export const clearChatHistory = async (
+  neighborId: number,
+  options?: RequestInit,
+): Promise<ClearChatHistory200> => {
+  return customFetch<ClearChatHistory200>(getClearChatHistoryUrl(neighborId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getClearChatHistoryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof clearChatHistory>>,
+    TError,
+    { neighborId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof clearChatHistory>>,
+  TError,
+  { neighborId: number },
+  TContext
+> => {
+  const mutationKey = ["clearChatHistory"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof clearChatHistory>>,
+    { neighborId: number }
+  > = (props) => {
+    const { neighborId } = props ?? {};
+
+    return clearChatHistory(neighborId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ClearChatHistoryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof clearChatHistory>>
+>;
+
+export type ClearChatHistoryMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Clear all chat history with a neighbor
+ */
+export const useClearChatHistory = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof clearChatHistory>>,
+    TError,
+    { neighborId: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof clearChatHistory>>,
+  TError,
+  { neighborId: number },
+  TContext
+> => {
+  return useMutation(getClearChatHistoryMutationOptions(options));
+};
+
+/**
  * @summary Send a direct message
  */
 export const getSendMessageUrl = () => {
@@ -3206,6 +3375,93 @@ export const useCreateColony = <
   TContext
 > => {
   return useMutation(getCreateColonyMutationOptions(options));
+};
+
+/**
+ * @summary Update colony details (admin only)
+ */
+export const getUpdateColonyUrl = (id: number) => {
+  return `/api/colonies/${id}`;
+};
+
+export const updateColony = async (
+  id: number,
+  createColonyBody: CreateColonyBody,
+  options?: RequestInit,
+): Promise<Colony> => {
+  return customFetch<Colony>(getUpdateColonyUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createColonyBody),
+  });
+};
+
+export const getUpdateColonyMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateColony>>,
+    TError,
+    { id: number; data: BodyType<CreateColonyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateColony>>,
+  TError,
+  { id: number; data: BodyType<CreateColonyBody> },
+  TContext
+> => {
+  const mutationKey = ["updateColony"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateColony>>,
+    { id: number; data: BodyType<CreateColonyBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateColony(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateColonyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateColony>>
+>;
+export type UpdateColonyMutationBody = BodyType<CreateColonyBody>;
+export type UpdateColonyMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update colony details (admin only)
+ */
+export const useUpdateColony = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateColony>>,
+    TError,
+    { id: number; data: BodyType<CreateColonyBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateColony>>,
+  TError,
+  { id: number; data: BodyType<CreateColonyBody> },
+  TContext
+> => {
+  return useMutation(getUpdateColonyMutationOptions(options));
 };
 
 /**

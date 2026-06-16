@@ -6,6 +6,7 @@ import {
   useSendMessage, 
   useEditMessage,
   useDeleteMessage,
+  useClearChatHistory,
   useListUsers, 
   getListConversationsQueryKey, 
   getListMessagesQueryKey 
@@ -61,6 +62,7 @@ export default function Chat() {
   const sendMessage = useSendMessage();
   const editMessage = useEditMessage();
   const deleteMessage = useDeleteMessage();
+  const clearChatHistory = useClearChatHistory();
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -239,6 +241,27 @@ export default function Chat() {
     });
   };
 
+  // Clear Chat History
+  const handleClearChat = () => {
+    if (activeNeighborId === null) return;
+    if (!confirm(`Are you sure you want to clear your chat history with ${activeNeighbor?.name || "this neighbor"}? This will permanently delete all messages.`)) return;
+
+    clearChatHistory.mutate({
+      neighborId: activeNeighborId
+    }, {
+      onSuccess: () => {
+        toast({ title: "Chat history cleared" });
+        queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(activeNeighborId) });
+        queryClient.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+        setActiveNeighborId(null);
+        setActiveNeighbor(null);
+      },
+      onError: () => {
+        toast({ title: "Failed to clear chat history", variant: "destructive" });
+      }
+    });
+  };
+
   return (
     <div className="h-[calc(100vh-10rem)] md:h-[calc(100vh-6rem)] flex rounded-xl border bg-card overflow-hidden shadow-sm">
       {/* Sidebar Chat List */}
@@ -365,17 +388,28 @@ export default function Chat() {
                   </p>
                 </div>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="md:hidden text-muted-foreground" 
-                onClick={() => {
-                  setActiveNeighborId(null);
-                  setActiveNeighbor(null);
-                }}
-              >
-                <X className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  onClick={handleClearChat}
+                  title="Clear Chat History"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="md:hidden text-muted-foreground" 
+                  onClick={() => {
+                    setActiveNeighborId(null);
+                    setActiveNeighbor(null);
+                  }}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
 
             {/* Messages Body */}

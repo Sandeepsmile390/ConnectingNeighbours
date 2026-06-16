@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
 import { formatDistanceToNow } from "date-fns";
@@ -13,6 +13,7 @@ const SEVERITY_CONFIG: Record<string, { label: string; color: string; icon: keyo
 
 interface Alert {
   id: number;
+  reporterId: number;
   reporter: { name: string };
   title: string;
   description: string;
@@ -21,7 +22,17 @@ interface Alert {
   createdAt: string;
 }
 
-export function AlertCard({ alert }: { alert: Alert }) {
+export function AlertCard({ 
+  alert, 
+  currentUserId, 
+  isColonyAdmin, 
+  onResolve 
+}: { 
+  alert: Alert; 
+  currentUserId?: number; 
+  isColonyAdmin?: boolean; 
+  onResolve?: (id: number) => void;
+}) {
   const colors = useColors();
   const conf = SEVERITY_CONFIG[alert.severity] ?? SEVERITY_CONFIG.low;
 
@@ -50,6 +61,17 @@ export function AlertCard({ alert }: { alert: Alert }) {
             {alert.reporter.name} · {formatDistanceToNow(new Date(alert.createdAt), { addSuffix: true })}
           </Text>
         </View>
+
+        {!alert.isResolved && onResolve && (currentUserId === alert.reporterId || isColonyAdmin) && (
+          <TouchableOpacity 
+            style={[styles.resolveBtn, { borderColor: colors.border }]} 
+            onPress={() => onResolve(alert.id)}
+            activeOpacity={0.7}
+          >
+            <Feather name="check-circle" size={12} color="#22C55E" />
+            <Text style={[styles.resolveBtnText, { color: colors.foreground }]}>Resolve Issue</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -72,4 +94,12 @@ const styles = StyleSheet.create({
   severityBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
   severityText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
   meta: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  resolveBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderRadius: 8, paddingVertical: 5, paddingHorizontal: 10,
+    marginTop: 8, alignSelf: "flex-end", gap: 4
+  },
+  resolveBtnText: {
+    fontSize: 11, fontFamily: "Inter_600SemiBold"
+  },
 });

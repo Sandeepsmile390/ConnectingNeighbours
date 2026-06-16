@@ -62,4 +62,44 @@ router.post("/alerts", async (req, res) => {
   res.status(201).json(formatAlert(alert, nbUser));
 });
 
+// POST /alerts/:id/resolve - Resolve safety alert
+router.post("/alerts/:id/resolve", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  try {
+    const alertId = Number(req.params.id);
+    const [alert] = await db.select().from(alertsTable).where(eq(alertsTable.id, alertId)).limit(1);
+    if (!alert) {
+      res.status(404).json({ error: "Alert not found" });
+      return;
+    }
+
+    const [reporter] = await db.select().from(neighborhoodUsersTable).where(eq(neighborhoodUsersTable.id, alert.reporterId)).limit(1);
+    if (!reporter) {
+      res.status(500).json({ error: "Reporter not found" });
+      return;
+    }
+
+    const isReporter = alert.reporterId === nbUser.id;
+    const isColonyAdmin = nbUser.isColonyAdmin && nbUser.colonyId === reporter.colonyId;
+
+    if (!isReporter && !isColonyAdmin) {
+      res.status(403).json({ error: "Forbidden: Only the reporter or a colony admin can resolve this alert" });
+      return;
+    }
+
+    const [updatedAlert] = await db.update(alertsTable)
+      .set({ isResolved: true })
+      .where(eq(alertsTable.id, alertId))
+      .returning();
+
+    res.json(formatAlert(updatedAlert, reporter));
+  } catch (err: any) {
+    req.log.error({ err }, "Failed to resolve alert");
+    res.status(500).json({ error: "Failed to resolve alert" });
+  }
+});
+
 export default router;

@@ -176,6 +176,7 @@ export interface Event {
   title: string;
   description: string;
   location: string;
+  imageUrl?: string | null;
   startsAt: string;
   endsAt?: string | null;
   rsvpCount: number;
@@ -187,6 +188,7 @@ export interface CreateEventBody {
   title: string;
   description: string;
   location: string;
+  imageUrl?: string | null;
   startsAt: string;
   endsAt?: string;
 }
@@ -452,6 +454,11 @@ export const ListResourcesType = {
   service: "service",
   childcare: "childcare",
 } as const;
+
+export type ClearChatHistory200 = {
+  success: boolean;
+  message: string;
+};
 
 export type EditMessageBody = {
   content: string;

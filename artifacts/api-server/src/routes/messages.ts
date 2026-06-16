@@ -106,6 +106,37 @@ router.get("/messages/:neighborId", async (req, res) => {
   res.json(messages.reverse());
 });
 
+// DELETE /messages/clear/:neighborId - Clear chat history
+router.delete("/messages/clear/:neighborId", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  try {
+    const myId = nbUser.id;
+    const neighborId = Number(req.params.neighborId);
+
+    if (isNaN(neighborId)) {
+      res.status(400).json({ error: "Invalid neighbor ID" });
+      return;
+    }
+
+    // Delete all messages between these two users
+    await db.delete(messagesTable)
+      .where(
+        or(
+          and(eq(messagesTable.senderId, myId), eq(messagesTable.receiverId, neighborId)),
+          and(eq(messagesTable.senderId, neighborId), eq(messagesTable.receiverId, myId))
+        )
+      );
+
+    res.json({ success: true, message: "Chat history cleared" });
+  } catch (err: any) {
+    req.log.error({ err }, "Failed to clear chat history");
+    res.status(500).json({ error: err.message || "Failed to clear chat history" });
+  }
+});
+
 // POST /messages - Send message
 router.post("/messages", async (req, res) => {
   if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }

@@ -21,6 +21,7 @@ const formSchema = z.object({
   location: z.string().min(1, "Location is required"),
   startsAt: z.string().min(1, "Start time is required"),
   endsAt: z.string().optional(),
+  imageUrl: z.string().optional(),
 });
 
 export default function Events() {
@@ -41,6 +42,7 @@ export default function Events() {
       location: "",
       startsAt: "",
       endsAt: "",
+      imageUrl: "",
     },
   });
 
@@ -49,7 +51,8 @@ export default function Events() {
     const formattedData = {
       ...data,
       startsAt: new Date(data.startsAt).toISOString(),
-      endsAt: data.endsAt ? new Date(data.endsAt).toISOString() : undefined
+      endsAt: data.endsAt ? new Date(data.endsAt).toISOString() : undefined,
+      imageUrl: data.imageUrl?.trim() || undefined,
     };
 
     createEvent.mutate({ data: formattedData }, {
@@ -125,6 +128,20 @@ export default function Events() {
                       <FormLabel>Location</FormLabel>
                       <FormControl>
                         <Input placeholder="Where is it happening?" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Event Cover Image URL (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. https://images.unsplash.com/photo-..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

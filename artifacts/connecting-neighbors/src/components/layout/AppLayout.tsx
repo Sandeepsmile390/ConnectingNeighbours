@@ -219,39 +219,39 @@ export function AppLayout({ children }: AppLayoutProps) {
           new Notification(`New ${typeLabel}: ${activity.title}`, {
             body: `${activity.actorName}: ${activity.description}`,
           });
+        }
 
-          // Play programmatic high-quality notification chime
-          try {
-            const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
-            const audioCtx = new AudioContextClass();
-            const now = audioCtx.currentTime;
-            
-            const osc1 = audioCtx.createOscillator();
-            const gain1 = audioCtx.createGain();
-            osc1.type = "sine";
-            osc1.frequency.setValueAtTime(880, now);
-            gain1.gain.setValueAtTime(0, now);
-            gain1.gain.linearRampToValueAtTime(0.1, now + 0.03);
-            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-            osc1.connect(gain1);
-            gain1.connect(audioCtx.destination);
-            osc1.start(now);
-            osc1.stop(now + 0.45);
+        // Play programmatic high-quality notification chime (decoupled from permission)
+        try {
+          const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+          const audioCtx = new AudioContextClass();
+          const now = audioCtx.currentTime;
+          
+          const osc1 = audioCtx.createOscillator();
+          const gain1 = audioCtx.createGain();
+          osc1.type = "sine";
+          osc1.frequency.setValueAtTime(880, now);
+          gain1.gain.setValueAtTime(0, now);
+          gain1.gain.linearRampToValueAtTime(0.1, now + 0.03);
+          gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          osc1.connect(gain1);
+          gain1.connect(audioCtx.destination);
+          osc1.start(now);
+          osc1.stop(now + 0.45);
 
-            const osc2 = audioCtx.createOscillator();
-            const gain2 = audioCtx.createGain();
-            osc2.type = "sine";
-            osc2.frequency.setValueAtTime(1109.73, now + 0.08);
-            gain2.gain.setValueAtTime(0, now + 0.08);
-            gain2.gain.linearRampToValueAtTime(0.08, now + 0.11);
-            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-            osc2.connect(gain2);
-            gain2.connect(audioCtx.destination);
-            osc2.start(now + 0.08);
-            osc2.stop(now + 0.55);
-          } catch (e) {
-            console.warn("Failed to play notification audio chime", e);
-          }
+          const osc2 = audioCtx.createOscillator();
+          const gain2 = audioCtx.createGain();
+          osc2.type = "sine";
+          osc2.frequency.setValueAtTime(1109.73, now + 0.08);
+          gain2.gain.setValueAtTime(0, now + 0.08);
+          gain2.gain.linearRampToValueAtTime(0.08, now + 0.11);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          osc2.connect(gain2);
+          gain2.connect(audioCtx.destination);
+          osc2.start(now + 0.08);
+          osc2.stop(now + 0.55);
+        } catch (e) {
+          console.warn("Failed to play notification audio chime", e);
         }
       }
     });

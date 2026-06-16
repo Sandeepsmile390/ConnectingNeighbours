@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, coloniesTable, neighborhoodUsersTable, eq, and } from "@workspace/db";
-import { CreateColonyBody, JoinColonyBody, VerifyColonyMemberBody } from "@workspace/api-zod";
+import { CreateColonyBody, JoinColonyBody, VerifyColonyMemberBody, UpdateColonyBody } from "@workspace/api-zod";
 import { getOrCreateNeighborhoodUser } from "./users.js";
 
 const router = Router();
@@ -165,6 +165,44 @@ router.post("/colonies/verify-member", async (req, res) => {
   } catch (err: any) {
     req.log.error({ err }, "Failed to verify member");
     res.status(500).json({ error: "Failed to verify member" });
+  }
+});
+
+// PUT /colonies/:id - Update colony details (admin-only)
+router.put("/colonies/:id", async (req, res) => {
+  if (!req.isAuthenticated()) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const nbUser = await getOrCreateNeighborhoodUser(req);
+  if (!nbUser) { res.status(401).json({ error: "Unauthorized" }); return; }
+
+  const colonyId = Number(req.params.id);
+  if (!nbUser.isColonyAdmin || nbUser.colonyId !== colonyId) {
+    res.status(403).json({ error: "Forbidden: Only the colony admin can edit colony details" });
+    return;
+  }
+
+  try {
+    const body = UpdateColonyBody.parse(req.body);
+
+    // Verify colony exists
+    const [colony] = await db.select().from(coloniesTable).where(eq(coloniesTable.id, colonyId)).limit(1);
+    if (!colony) {
+      res.status(404).json({ error: "Colony not found" });
+      return;
+    }
+
+    const [updatedColony] = await db.update(coloniesTable)
+      .set({
+        name: body.name,
+        description: body.description,
+        address: body.address,
+      })
+      .where(eq(coloniesTable.id, colonyId))
+      .returning();
+
+    res.json(updatedColony);
+  } catch (err: any) {
+    req.log.error({ err }, "Failed to update colony");
+    res.status(500).json({ error: "Failed to update colony" });
   }
 });
 

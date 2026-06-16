@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useListAlerts, useCreateAlert, getListAlertsQueryKey } from "@workspace/api-client-react";
+import { useListAlerts, useCreateAlert, useResolveAlert, getListAlertsQueryKey, useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { formatDistanceToNow } from "date-fns";
 import { AlertTriangle, Plus, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,22 @@ export default function Alerts() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
   const { data: alerts, isLoading } = useListAlerts({ query: { queryKey: getListAlertsQueryKey() } });
   const createAlert = useCreateAlert();
+  const resolveAlert = useResolveAlert();
+
+  const handleResolve = (id: number) => {
+    resolveAlert.mutate({ id }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListAlertsQueryKey() });
+        toast({ title: "Issue resolved", description: "The safety alert has been marked as resolved." });
+      },
+      onError: (err: any) => {
+        toast({ title: "Failed to resolve issue", description: err.message, variant: "destructive" });
+      }
+    });
+  };
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -200,8 +214,22 @@ export default function Alerts() {
                       </div>
                     </div>
                     <p className="text-sm opacity-90 mb-3">{alert.description}</p>
-                    <div className="text-xs opacity-70 font-medium">
-                      Reported by {alert.reporter.name} {alert.reporter.apartment ? `(${alert.reporter.apartment})` : ''}
+                    <div className="flex justify-between items-center mt-3 pt-2 border-t border-foreground/10">
+                      <div className="text-xs opacity-70 font-medium">
+                        Reported by {alert.reporter.name} {alert.reporter.apartment ? `(${alert.reporter.apartment})` : ''}
+                      </div>
+                      {!alert.isResolved && (user?.id === alert.reporterId || user?.isColonyAdmin) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleResolve(alert.id)}
+                          disabled={resolveAlert.isPending}
+                          className="h-7 px-3 text-xs bg-background hover:bg-green-500 hover:text-white border-green-500/30 hover:border-green-500 flex items-center gap-1 font-semibold"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Resolve Issue
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

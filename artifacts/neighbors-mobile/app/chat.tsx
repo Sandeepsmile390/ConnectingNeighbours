@@ -12,6 +12,7 @@ import {
   useSendMessage, 
   useEditMessage,
   useDeleteMessage,
+  useClearChatHistory,
   useListUsers, 
   getListConversationsQueryKey, 
   getListMessagesQueryKey 
@@ -121,6 +122,7 @@ export default function ChatScreen() {
   const sendMessage = useSendMessage();
   const editMessage = useEditMessage();
   const deleteMessage = useDeleteMessage();
+  const clearChatHistory = useClearChatHistory();
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -305,6 +307,32 @@ export default function ChatScreen() {
     );
   };
 
+  // Clear Chat History
+  const handleClearChat = () => {
+    if (activeNeighborId === null) return;
+    Alert.alert(
+      "Clear Chat History",
+      `Are you sure you want to clear your chat history with ${activeNeighbor?.name || "this neighbor"}? This will permanently delete all messages.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear Chat",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await clearChatHistory.mutateAsync({ neighborId: activeNeighborId });
+              setActiveNeighborId(null);
+              setActiveNeighbor(null);
+              refetchConversations();
+            } catch {
+              Alert.alert("Error", "Failed to clear chat history.");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const showMessageMenu = (msg: any) => {
     if (msg.senderId !== currentUser.id || msg.isDeleted) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -472,6 +500,9 @@ export default function ChatScreen() {
                 {activeNeighbor.apartment ? `Flat ${activeNeighbor.apartment}` : "Neighbor"}
               </Text>
             </View>
+            <TouchableOpacity onPress={handleClearChat} style={styles.backBtn}>
+              <Feather name="trash-2" size={18} color={colors.mutedForeground} />
+            </TouchableOpacity>
           </View>
 
           {/* Messages Stream */}
