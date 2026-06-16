@@ -318,7 +318,7 @@ export default function Colonies() {
                     </Dialog>
                   )}
 
-                  {user.isColonyApproved ? (
+                  {user.isVerified ? (
                     <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border-0 shadow-sm shrink-0">
                       <Check className="h-3.5 w-3.5 shrink-0" />
                       Verified Resident
@@ -338,12 +338,12 @@ export default function Colonies() {
                 {myColony.description}
               </div>
 
-              {!user.isColonyApproved && (
+              {!user.isVerified && (
                 <Alert className="border-amber-500/20 bg-amber-500/[0.02] mt-4">
                   <ShieldAlert className="h-4 w-4 text-amber-500" />
                   <AlertTitle className="text-amber-600 font-bold text-sm">Action Needed: Verify Residency</AlertTitle>
                   <AlertDescription className="text-xs mt-1 text-muted-foreground leading-relaxed">
-                    You have requested to join **{myColony.name}**. An admin of this colony needs to confirm your details (your username is <span className="font-semibold text-foreground">@{user.username}</span>) before you receive a verified badge and unlock permissions.
+                    You have joined **{myColony.name}**. An admin of this colony needs to confirm your details (your username is <span className="font-semibold text-foreground">@{user.username}</span>) before you receive a verified badge.
                   </AlertDescription>
                 </Alert>
               )}

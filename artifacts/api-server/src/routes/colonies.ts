@@ -88,8 +88,8 @@ router.post("/colonies/join", async (req, res) => {
       .set({
         colonyId: body.colonyId,
         isColonyAdmin: isUserAdmin,
-        isColonyApproved: isUserAdmin ? true : false, // Auto-approve if they are admin
-        isVerified: isUserAdmin ? true : false,       // Auto-verify if they are admin
+        isColonyApproved: true, // Always approved to join colony immediately
+        isVerified: isUserAdmin ? true : false,       // Requires verification from admin if resident
       })
       .where(eq(neighborhoodUsersTable.id, nbUser.id))
       .returning();
@@ -118,7 +118,7 @@ router.get("/colonies/pending-members", async (req, res) => {
       .where(
         and(
           eq(neighborhoodUsersTable.colonyId, nbUser.colonyId),
-          eq(neighborhoodUsersTable.isColonyApproved, false)
+          eq(neighborhoodUsersTable.isVerified, false) // Fetch members who are not yet verified
         )
       );
     res.json(pendingMembers);

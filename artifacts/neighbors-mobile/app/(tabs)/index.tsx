@@ -2,6 +2,7 @@ import React from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Platform, RefreshControl, TextInput, ActivityIndicator, Alert,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
@@ -297,9 +298,11 @@ export default function HomeScreen() {
             {user?.name ?? "Neighbor"}
           </Text>
         </View>
-        <View style={[styles.logoMark, { backgroundColor: colors.primary }]}>
-          <Text style={styles.logoText}>CN</Text>
-        </View>
+        <Image
+          source={require("@/assets/images/icon.png")}
+          style={styles.logoMark}
+          resizeMode="cover"
+        />
       </View>
 
       {/* Critical Status Alerts / Messages */}
@@ -319,13 +322,13 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {user && user.colonyId && !user.isColonyApproved && (
+        {user && user.colonyId && !user.isVerified && (
           <View style={[styles.statusBanner, { backgroundColor: "#FFFBEB", borderColor: "#FCD34D" }]}>
             <Feather name="alert-triangle" size={16} color="#D97706" style={{ marginTop: 2 }} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.statusTitle, { color: "#B45309" }]}>Verification Pending</Text>
               <Text style={[styles.statusText, { color: "#D97706" }]}>
-                Your request to join your colony is pending verification by the administrator.
+                Your residency is pending verification by the administrator. You can still use the community portal, but you are not yet verified.
               </Text>
               <TouchableOpacity onPress={() => router.push("/colonies" as any)} style={{ marginTop: 4 }}>
                 <Text style={{ fontSize: 12, fontWeight: "bold", color: "#B45309" }}>Go to Colony Hub &rarr;</Text>

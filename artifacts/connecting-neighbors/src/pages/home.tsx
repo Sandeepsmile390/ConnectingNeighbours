@@ -67,13 +67,13 @@ export default function Home() {
           </div>
         )}
 
-        {user && user.colonyId && !user.isColonyApproved && (
+        {user && user.colonyId && !user.isVerified && (
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex gap-3.5 items-start">
             <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <h3 className="font-bold text-amber-600 text-sm">Residency Verification Pending</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Your request to join your colony is pending verification by the administrator. To manage requests or switch colonies, go to the Colony Hub.
+                Your residency is pending verification by the administrator. You can browse and participate, but your profile will show as unverified until approved.
               </p>
               <Link href="/colonies">
                 <Button variant="link" className="text-xs p-0 h-auto font-bold text-amber-600 hover:text-amber-700">Go to Colony Hub &rarr;</Button>

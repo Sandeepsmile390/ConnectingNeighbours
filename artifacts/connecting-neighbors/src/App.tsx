@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@workspace/replit-auth-web";
@@ -20,22 +20,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Milestone, Plus, Search, ArrowRight, LogOut, Building, Users } from "lucide-react";
 
-import Login from "@/pages/login";
-import Home from "@/pages/home";
-import Feed from "@/pages/feed";
-import Marketplace from "@/pages/marketplace";
-import Events from "@/pages/events";
-import Alerts from "@/pages/alerts";
-import Resources from "@/pages/resources";
-import Members from "@/pages/members";
-import Profile from "@/pages/profile";
-import Chat from "@/pages/chat";
-import Feedback from "@/pages/feedback";
-import Assistant from "@/pages/assistant";
-import Colonies from "@/pages/colonies";
-import Hostels from "@/pages/hostels";
-import Guidelines from "@/pages/guidelines";
-import NotFound from "@/pages/not-found";
+const Login = lazy(() => import("@/pages/login"));
+const Home = lazy(() => import("@/pages/home"));
+const Feed = lazy(() => import("@/pages/feed"));
+const Marketplace = lazy(() => import("@/pages/marketplace"));
+const Events = lazy(() => import("@/pages/events"));
+const Alerts = lazy(() => import("@/pages/alerts"));
+const Resources = lazy(() => import("@/pages/resources"));
+const Members = lazy(() => import("@/pages/members"));
+const Profile = lazy(() => import("@/pages/profile"));
+const Chat = lazy(() => import("@/pages/chat"));
+const Feedback = lazy(() => import("@/pages/feedback"));
+const Assistant = lazy(() => import("@/pages/assistant"));
+const Colonies = lazy(() => import("@/pages/colonies"));
+const Hostels = lazy(() => import("@/pages/hostels"));
+const Guidelines = lazy(() => import("@/pages/guidelines"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 function ColonyOnboarding() {
   const { logout } = useAuth();
@@ -278,25 +278,65 @@ function ColonyOnboarding() {
   );
 }
 
+function RouteLoading() {
+  return (
+    <div className="w-full space-y-6 p-1 animate-pulse">
+      <style>{`
+        @keyframes loading-progress {
+          0% { left: -30%; width: 30%; }
+          50% { left: 30%; width: 40%; }
+          100% { left: 100%; width: 30%; }
+        }
+        .animate-progress-bar {
+          position: absolute;
+          animation: loading-progress 1.5s infinite linear;
+        }
+      `}</style>
+      <div className="fixed top-0 left-0 right-0 h-1 bg-muted/30 overflow-hidden z-50">
+        <div className="h-full bg-gradient-to-r from-primary/80 to-primary animate-progress-bar" />
+      </div>
+      
+      {/* Modern Page Skeleton */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <div className="h-10 w-10 rounded-lg bg-muted/60" />
+          <div className="space-y-2 flex-1">
+            <div className="h-4 bg-muted/60 rounded w-1/4" />
+            <div className="h-3 bg-muted/40 rounded w-1/3" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
+          <div className="h-32 rounded-xl bg-muted/40 border border-muted/20" />
+          <div className="h-32 rounded-xl bg-muted/40 border border-muted/20" />
+          <div className="h-32 rounded-xl bg-muted/40 border border-muted/20" />
+        </div>
+        <div className="h-48 rounded-xl bg-muted/30 border border-muted/10 mt-6" />
+      </div>
+    </div>
+  );
+}
+
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/feed" component={Feed} />
-      <Route path="/marketplace" component={Marketplace} />
-      <Route path="/events" component={Events} />
-      <Route path="/alerts" component={Alerts} />
-      <Route path="/resources" component={Resources} />
-      <Route path="/members" component={Members} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/chat" component={Chat} />
-      <Route path="/feedback" component={Feedback} />
-      <Route path="/assistant" component={Assistant} />
-      <Route path="/colonies" component={Colonies} />
-      <Route path="/hostels" component={Hostels} />
-      <Route path="/guidelines" component={Guidelines} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<RouteLoading />}>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/feed" component={Feed} />
+        <Route path="/marketplace" component={Marketplace} />
+        <Route path="/events" component={Events} />
+        <Route path="/alerts" component={Alerts} />
+        <Route path="/resources" component={Resources} />
+        <Route path="/members" component={Members} />
+        <Route path="/profile" component={Profile} />
+        <Route path="/chat" component={Chat} />
+        <Route path="/feedback" component={Feedback} />
+        <Route path="/assistant" component={Assistant} />
+        <Route path="/colonies" component={Colonies} />
+        <Route path="/hostels" component={Hostels} />
+        <Route path="/guidelines" component={Guidelines} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
@@ -308,7 +348,11 @@ export default function App() {
   }
 
   if (!isAuthenticated) {
-    return <Login />;
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center" />}>
+        <Login />
+      </Suspense>
+    );
   }
 
   // Intercept and enforce colony onboarding choice right after sign-in

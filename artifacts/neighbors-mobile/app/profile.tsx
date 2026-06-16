@@ -118,7 +118,7 @@ export default function ProfileScreen() {
                 <View style={[styles.colonyBadgeRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
                   <Feather name="map-pin" size={13} color={colors.primary} />
                   <Text style={[styles.colonyName, { color: colors.foreground }]}>{myColony.name}</Text>
-                  {user.isColonyApproved ? (
+                  {user.isVerified ? (
                     <View style={[styles.badgeVerified, { backgroundColor: "#10B981" }]}>
                       <Feather name="check" size={10} color="#fff" />
                       <Text style={styles.badgeText}>Verified</Text>

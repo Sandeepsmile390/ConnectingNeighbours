@@ -148,7 +148,7 @@ export default function ColoniesScreen() {
                 <View style={[styles.tabBadge, { backgroundColor: colors.primary + "18" }]}>
                   <Text style={[styles.tabBadgeText, { color: colors.primary }]}>ACTIVE COLONY</Text>
                 </View>
-                {user.isColonyApproved ? (
+                {user.isVerified ? (
                   <View style={[styles.statusBadge, { backgroundColor: "#10B98120" }]}>
                     <Feather name="check" size={12} color="#10B981" />
                     <Text style={[styles.statusText, { color: "#10B981" }]}>Verified Resident</Text>
@@ -171,7 +171,7 @@ export default function ColoniesScreen() {
               <Text style={[styles.sectionSubtitle, { color: colors.mutedForeground, marginTop: 12 }]}>About the Colony</Text>
               <Text style={[styles.description, { color: colors.foreground }]}>{myColony.description}</Text>
 
-              {!user.isColonyApproved && (
+              {!user.isVerified && (
                 <View style={[styles.alertNotice, { backgroundColor: "#F59E0B10", borderColor: "#F59E0B30" }]}>
                   <Feather name="alert-triangle" size={16} color="#F59E0B" />
                   <View style={{ flex: 1 }}>

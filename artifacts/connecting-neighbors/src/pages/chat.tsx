@@ -270,7 +270,7 @@ export default function Chat() {
           <h2 className="font-bold text-lg">Messages</h2>
           <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
             <DialogTrigger asChild>
-              <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full">
+              <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" aria-label="Start new chat">
                 <Plus className="h-5 w-5" />
               </Button>
             </DialogTrigger>
@@ -286,6 +286,7 @@ export default function Chat() {
                     className="pl-9"
                     value={contactSearch}
                     onChange={(e) => setContactSearch(e.target.value)}
+                    aria-label="Search neighbors"
                   />
                 </div>
                 <div className="max-h-60 overflow-y-auto space-y-1">
@@ -395,6 +396,7 @@ export default function Chat() {
                   className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                   onClick={handleClearChat}
                   title="Clear Chat History"
+                  aria-label="Clear Chat History"
                 >
                   <Trash2 className="h-5 w-5" />
                 </Button>
@@ -406,6 +408,7 @@ export default function Chat() {
                     setActiveNeighborId(null);
                     setActiveNeighbor(null);
                   }}
+                  aria-label="Close conversation"
                 >
                   <X className="h-5 w-5" />
                 </Button>
@@ -424,13 +427,14 @@ export default function Chat() {
                     } ${msg.isDeleted ? "opacity-60 bg-muted/40 text-muted-foreground border border-dashed" : ""}`}>
                       {/* Hover action menu for own active messages */}
                       {isMe && !msg.isDeleted && !isEditing && (
-                        <div className="absolute right-0 top-0 -translate-y-8 bg-background border rounded-lg shadow-md flex items-center p-0.5 gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <div className="absolute right-0 top-0 -translate-y-8 bg-background border rounded-lg shadow-md flex items-center p-0.5 gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-opacity z-10">
                           <Button 
                             size="icon" 
                             variant="ghost" 
                             type="button"
                             className="h-6 w-6 rounded text-muted-foreground hover:text-foreground"
                             onClick={() => { setEditingMessageId(msg.id); setEditingText(msg.content); }}
+                            aria-label="Edit message"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
@@ -440,6 +444,7 @@ export default function Chat() {
                             type="button"
                             className="h-6 w-6 rounded text-destructive hover:text-destructive hover:bg-destructive/10"
                             onClick={() => handleDelete(msg.id)}
+                            aria-label="Delete message"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -529,12 +534,13 @@ export default function Chat() {
             <div className="p-4 border-t flex flex-col gap-2 bg-muted/5">
               <form onSubmit={handleSend} className="flex gap-2 items-center">
                 {/* File Attachment Uploader */}
-                <label className="cursor-pointer shrink-0">
+                <label className="cursor-pointer shrink-0" aria-label="Attach document or media file">
                   <input 
                     type="file" 
                     onChange={handleFileChange} 
                     className="hidden" 
                     accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip"
+                    aria-label="Upload document attachment"
                   />
                   <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors">
                     <Paperclip className="h-4 w-4" />
@@ -548,12 +554,13 @@ export default function Chat() {
                   size="icon"
                   onClick={isRecording ? stopRecording : startRecording}
                   className={`h-9 w-9 rounded-full shrink-0 ${isRecording ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                  aria-label={isRecording ? "Stop recording voice message" : "Record voice message"}
                 >
                   <Mic className="h-4 w-4" />
                 </Button>
 
                 {isRecording ? (
-                  <div className="flex-1 px-3 py-2 text-sm text-red-500 animate-pulse font-medium">
+                  <div className="flex-1 px-3 py-2 text-sm text-red-500 animate-pulse font-medium" role="status" aria-live="polite">
                     Recording voice... Click Mic to send
                   </div>
                 ) : (
@@ -563,10 +570,11 @@ export default function Chat() {
                     onChange={(e) => setNewMessage(e.target.value)}
                     className="flex-1"
                     disabled={sendMessage.isPending}
+                    aria-label="Message text"
                   />
                 )}
 
-                <Button type="submit" size="icon" disabled={sendMessage.isPending || (!newMessage.trim() && !isRecording)}>
+                <Button type="submit" size="icon" disabled={sendMessage.isPending || (!newMessage.trim() && !isRecording)} aria-label="Send message">
                   <Send className="h-4 w-4" />
                 </Button>
               </form>

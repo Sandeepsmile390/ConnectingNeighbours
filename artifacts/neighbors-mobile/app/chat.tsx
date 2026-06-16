@@ -488,7 +488,13 @@ export default function ChatScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
           {/* Thread Header */}
           <View style={[styles.threadHeader, { borderBottomColor: colors.border, paddingTop: insets.top + 8 }]}>
-            <TouchableOpacity onPress={() => { setActiveNeighborId(null); setActiveNeighbor(null); }} style={styles.backBtn}>
+            <TouchableOpacity 
+              onPress={() => { setActiveNeighborId(null); setActiveNeighbor(null); }} 
+              style={styles.backBtn}
+              accessibilityLabel="Go back"
+              accessibilityRole="button"
+              accessibilityHint="Navigates back to the conversation list"
+            >
               <Feather name="arrow-left" size={18} color={colors.foreground} />
             </TouchableOpacity>
             <View style={[styles.avatarFallbackSmall, { backgroundColor: colors.primary + "18", marginRight: 8 }]}>
@@ -500,7 +506,13 @@ export default function ChatScreen() {
                 {activeNeighbor.apartment ? `Flat ${activeNeighbor.apartment}` : "Neighbor"}
               </Text>
             </View>
-            <TouchableOpacity onPress={handleClearChat} style={styles.backBtn}>
+            <TouchableOpacity 
+              onPress={handleClearChat} 
+              style={styles.backBtn}
+              accessibilityLabel="Clear Chat History"
+              accessibilityRole="button"
+              accessibilityHint="Permanently deletes all messages in this conversation"
+            >
               <Feather name="trash-2" size={18} color={colors.mutedForeground} />
             </TouchableOpacity>
           </View>
@@ -597,7 +609,13 @@ export default function ChatScreen() {
           <View style={[styles.footer, { paddingBottom: insets.bottom + 8, borderTopColor: colors.border }]}>
             <View style={styles.footerRow}>
               {/* Paperclip Document Picker */}
-              <TouchableOpacity onPress={pickDocument} style={[styles.footerIconBtn, { backgroundColor: colors.muted + "15" }]}>
+              <TouchableOpacity 
+                onPress={pickDocument} 
+                style={[styles.footerIconBtn, { backgroundColor: colors.muted + "15" }]}
+                accessibilityLabel="Attach document"
+                accessibilityRole="button"
+                accessibilityHint="Opens document selector to attach a file to the chat"
+              >
                 <Feather name="paperclip" size={18} color={colors.mutedForeground} />
               </TouchableOpacity>
 
@@ -611,12 +629,15 @@ export default function ChatScreen() {
                     ? { backgroundColor: "#EF4444" } 
                     : { backgroundColor: colors.muted + "15" }
                 ]}
+                accessibilityLabel={isRecording ? "Recording voice note. Release to send" : "Record voice note"}
+                accessibilityRole="button"
+                accessibilityHint="Hold to record a voice message, release to send"
               >
                 <Feather name="mic" size={18} color={isRecording ? "#ffffff" : colors.mutedForeground} />
               </TouchableOpacity>
 
               {isRecording ? (
-                <View style={styles.recordingLabelContainer}>
+                <View style={styles.recordingLabelContainer} accessibilityLiveRegion="polite">
                   <Text style={styles.recordingText}>Recording... Release to send</Text>
                 </View>
               ) : (
@@ -627,6 +648,7 @@ export default function ChatScreen() {
                   onChangeText={setNewMessage}
                   style={[styles.input, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.card }]}
                   multiline
+                  accessibilityLabel="Message input field"
                 />
               )}
 
@@ -640,6 +662,9 @@ export default function ChatScreen() {
                     (!newMessage.trim() || sendMessage.isPending) ? { opacity: 0.5 } : {}
                   ]}
                   activeOpacity={0.8}
+                  accessibilityLabel="Send message"
+                  accessibilityRole="button"
+                  accessibilityHint="Sends the typed message text"
                 >
                   <Feather name="send" size={15} color={colors.primaryForeground} />
                 </TouchableOpacity>

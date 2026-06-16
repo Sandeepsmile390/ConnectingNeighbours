@@ -163,7 +163,11 @@ export default function MoreScreen() {
           </View>
         ) : (
           <View style={[styles.loginCard, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" }]}>
-            <Feather name="user" size={32} color={colors.primary} />
+            <Image
+              source={require("@/assets/images/icon.png")}
+              style={{ width: 64, height: 64, borderRadius: 16, marginBottom: 8 }}
+              resizeMode="cover"
+            />
             <Text style={[styles.loginTitle, { color: colors.foreground }]}>Join Your Neighborhood</Text>
             <Text style={[styles.loginDesc, { color: colors.mutedForeground }]}>
               Sign in to post, RSVP to events, and connect with neighbors.
@@ -175,23 +179,6 @@ export default function MoreScreen() {
             >
               <Text style={[styles.loginBtnText, { color: colors.primaryForeground }]}>Sign In with Replit</Text>
             </TouchableOpacity>
-
-            <View style={styles.devLoginRow}>
-              <TouchableOpacity
-                style={[styles.devLoginBtn, { borderColor: colors.border }]}
-                onPress={handleAdminDevLogin}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.devLoginBtnText, { color: colors.foreground }]}>Test Admin</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.devLoginBtn, { borderColor: colors.border }]}
-                onPress={() => loginDev("resident")}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.devLoginBtnText, { color: colors.foreground }]}>Test Resident</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         )}
 

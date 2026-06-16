@@ -56,6 +56,7 @@ function ThemeToggle() {
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className="text-muted-foreground hover:text-foreground h-9 w-9 rounded-md transition-colors"
       title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
     >
       <Sun className="h-5 w-5 hidden dark:block text-amber-500" />
       <Moon className="h-5 w-5 dark:hidden" />
@@ -104,7 +105,12 @@ function ColonyAdminNotificationButton({ user }: { user: any }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground h-9 w-9 rounded-md transition-colors">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="relative text-muted-foreground hover:text-foreground h-9 w-9 rounded-md transition-colors"
+          aria-label="Pending residency requests notifications"
+        >
           <Bell className="h-5 w-5" />
           {count > 0 && (
             <span className="absolute -top-0.5 -right-0.5 bg-destructive text-destructive-foreground text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center animate-pulse">
@@ -197,6 +203,26 @@ export function AppLayout({ children }: AppLayoutProps) {
       queryKey: getListAlertsQueryKey()
     }
   });
+
+  useEffect(() => {
+    const routeTitles: Record<string, string> = {
+      "/": "Home - Connecting Neighbors",
+      "/feed": "Community Feed - Connecting Neighbors",
+      "/chat": "Messages - Connecting Neighbors",
+      "/colonies": "Colony Hub - Connecting Neighbors",
+      "/marketplace": "Marketplace - Connecting Neighbors",
+      "/hostels": "Hostels - Connecting Neighbors",
+      "/events": "Events - Connecting Neighbors",
+      "/alerts": "Safety Alerts - Connecting Neighbors",
+      "/resources": "Resources - Connecting Neighbors",
+      "/members": "Members Directory - Connecting Neighbors",
+      "/assistant": "AI Assistant - Connecting Neighbors",
+      "/guidelines": "Community Guidelines - Connecting Neighbors",
+      "/feedback": "Feedback - Connecting Neighbors",
+      "/profile": "My Profile - Connecting Neighbors",
+    };
+    document.title = routeTitles[location] || "Connecting Neighbors";
+  }, [location]);
 
   useEffect(() => {
     // Request permission on load
@@ -321,9 +347,9 @@ export function AppLayout({ children }: AppLayoutProps) {
           <img src="/logo.png" alt="Connecting Neighbors" className="h-8 w-8 rounded-lg object-cover" />
           <span className="font-semibold text-lg tracking-tight">Neighbors</span>
         </div>
-        <div className="flex-1 overflow-y-auto p-4">
+        <nav aria-label="Desktop Sidebar Navigation" className="flex-1 overflow-y-auto p-4">
           <NavLinks />
-        </div>
+        </nav>
         <div className="p-4 border-t space-y-2">
           <Link href="/profile">
             <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground">
@@ -360,7 +386,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <ThemeToggle />
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="-mr-2">
+                <Button variant="ghost" size="icon" className="-mr-2" aria-label="Open navigation menu">
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
@@ -368,9 +394,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <div className="p-6 border-b">
                   <span className="font-semibold text-lg">Connecting Neighbors</span>
                 </div>
-                <div className="flex-1 overflow-y-auto p-4">
+                <nav aria-label="Mobile Navigation" className="flex-1 overflow-y-auto p-4">
                   <NavLinks />
-                </div>
+                </nav>
                 <div className="p-4 border-t space-y-2">
                   <Link href="/profile">
                     <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground">
