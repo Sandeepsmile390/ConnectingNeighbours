@@ -6,7 +6,7 @@ const router = Router();
 router.get("/api/app-version", (_req, res) => {
   res.json({
     latestVersion: "1.0.1",
-    apkUrl: "https://connecting-neighbours-apiserver.vercel.app/download/app-latest.apk",
+    apkUrl: "https://expo.dev/artifacts/eas/EdkElQl_-Cy6-aZ8SP5XBncJVzIsdnXVd9VpJ4DFCYs.apk",
     releaseNotes: "New global notifications bell, dynamic sound chimes, and verified residency badges.",
   });
 });
