@@ -35,11 +35,15 @@ export default function MoreScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { user, isAuthenticated, login, loginDev, logout } = useAuth();
+  const { user, isAuthenticated, login, loginDev, logout, refetchUser } = useAuth();
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showGoogleAdminPasswordModal, setShowGoogleAdminPasswordModal] = useState(false);
+  const [showPromotionPasswordModal, setShowPromotionPasswordModal] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
+  const [promotionPasswordInput, setPromotionPasswordInput] = useState("");
+
+  const DOMAIN = process.env.EXPO_PUBLIC_DOMAIN || "connecting-neighbours-apiserver.vercel.app";
 
   // Fetch count states
   const { data: conversations } = useListConversations({
@@ -150,6 +154,60 @@ export default function MoreScreen() {
       }
     } else {
       setShowGoogleAdminPasswordModal(true);
+    }
+  };
+
+  const promoteToAdmin = async (pwd: string) => {
+    try {
+      const storedToken = await AsyncStorage.getItem("cn_auth_token");
+      if (!storedToken) return false;
+      const res = await fetch(`https://${DOMAIN}/api/auth/promote-admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${storedToken}`,
+        },
+        body: JSON.stringify({ password: pwd }),
+      });
+      if (res.ok) {
+        Alert.alert("Success", "You are now a colony administrator.");
+        await refetchUser();
+        return true;
+      } else {
+        Alert.alert("Error", "Incorrect admin password");
+        return false;
+      }
+    } catch {
+      Alert.alert("Error", "An error occurred during promotion.");
+      return false;
+    }
+  };
+
+  const handleBecomeAdminPress = () => {
+    if (Platform.OS === "ios") {
+      Alert.prompt(
+        "Admin Password Required",
+        "Please enter the password to become colony admin:",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Verify",
+            onPress: async (pwd?: string) => {
+              if (pwd) {
+                await promoteToAdmin(pwd);
+              }
+            }
+          }
+        ],
+        "secure-text"
+      );
+    } else if (Platform.OS === "web") {
+      const pwd = window.prompt("Enter admin password:");
+      if (pwd) {
+        promoteToAdmin(pwd);
+      }
+    } else {
+      setShowPromotionPasswordModal(true);
     }
   };
 
@@ -303,6 +361,22 @@ export default function MoreScreen() {
           <>
             <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>ACCOUNT</Text>
             <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              {user && !user.isColonyAdmin && (
+                <TouchableOpacity 
+                  style={[styles.menuItem, { borderBottomWidth: 1, borderBottomColor: colors.border }]} 
+                  onPress={handleBecomeAdminPress} 
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.menuIconBox, { backgroundColor: "#F59E0B18" }]}>
+                    <Feather name="shield" size={18} color="#F59E0B" />
+                  </View>
+                  <View style={styles.menuText}>
+                    <Text style={[styles.menuLabel, { color: "#F59E0B" }]}>Become Colony Admin</Text>
+                    <Text style={[styles.menuDesc, { color: colors.mutedForeground }]}>Elevate profile using admin password</Text>
+                  </View>
+                  <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity style={styles.menuItem} onPress={handleLogout} activeOpacity={0.7}>
                 <View style={[styles.menuIconBox, { backgroundColor: colors.destructive + "18" }]}>
                   <Feather name="log-out" size={18} color={colors.destructive} />
@@ -425,6 +499,58 @@ export default function MoreScreen() {
                 }}
               >
                 <Text style={{ color: colors.primaryForeground, fontFamily: "Inter_600SemiBold" }}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Promotion Admin Password Modal for Android */}
+      <Modal
+        visible={showPromotionPasswordModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowPromotionPasswordModal(false);
+          setPromotionPasswordInput("");
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.foreground }]}>Become Colony Admin</Text>
+            <Text style={[styles.modalDesc, { color: colors.mutedForeground }]}>
+              Please enter the administrator password:
+            </Text>
+            <TextInput
+              style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+              secureTextEntry
+              autoFocus
+              value={promotionPasswordInput}
+              onChangeText={setPromotionPasswordInput}
+              placeholder="Password"
+              placeholderTextColor={colors.mutedForeground}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalBtn, { borderColor: colors.border }]}
+                onPress={() => {
+                  setShowPromotionPasswordModal(false);
+                  setPromotionPasswordInput("");
+                }}
+              >
+                <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold" }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, { backgroundColor: colors.primary, borderWidth: 0 }]}
+                onPress={async () => {
+                  const success = await promoteToAdmin(promotionPasswordInput);
+                  if (success) {
+                    setShowPromotionPasswordModal(false);
+                    setPromotionPasswordInput("");
+                  }
+                }}
+              >
+                <Text style={{ color: colors.primaryForeground, fontFamily: "Inter_600SemiBold" }}>Verify</Text>
               </TouchableOpacity>
             </View>
           </View>

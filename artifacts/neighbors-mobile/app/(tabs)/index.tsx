@@ -54,16 +54,41 @@ export default function HomeScreen() {
   const [showNotificationsModal, setShowNotificationsModal] = React.useState(false);
 
   React.useEffect(() => {
+    if (!user) return;
     (async () => {
       try {
         const role = await AsyncStorage.getItem("intended_role");
         if (role === "admin" || role === "resident") {
-          setActiveTab(role as any);
-          await AsyncStorage.removeItem("intended_role");
+          if (!user.colonyId) {
+            setActiveTab(role as any);
+            await AsyncStorage.removeItem("intended_role");
+          } else if (role === "admin" && !user.isColonyAdmin) {
+            await AsyncStorage.removeItem("intended_role");
+            const token = await AsyncStorage.getItem("cn_auth_token");
+            if (token) {
+              const DOMAIN = process.env.EXPO_PUBLIC_DOMAIN || "connecting-neighbours-apiserver.vercel.app";
+              const res = await fetch(`https://${DOMAIN}/api/auth/promote-admin`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ password: "Admin@1234" }),
+              });
+              if (res.ok) {
+                Alert.alert("Welcome, Admin!", "You have been promoted to colony administrator.");
+                await refetchUser();
+              }
+            }
+          } else {
+            await AsyncStorage.removeItem("intended_role");
+          }
         }
-      } catch {}
+      } catch (err) {
+        console.error("Auto promotion failed:", err);
+      }
     })();
-  }, []);
+  }, [user]);
 
   React.useEffect(() => {
     if (user?.colonyId) {

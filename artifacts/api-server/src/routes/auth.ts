@@ -405,4 +405,38 @@ router.post("/mobile-auth/logout", async (req: any, res: any) => {
   res.json(LogoutMobileSessionResponse.parse({ success: true }));
 });
 
+router.post("/auth/promote-admin", async (req: any, res: any) => {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  try {
+    const { neighborhoodUsersTable, eq } = await import("@workspace/db");
+    const { getOrCreateNeighborhoodUser } = await import("./users.js");
+    const nbUser = await getOrCreateNeighborhoodUser(req);
+    if (!nbUser) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const { password } = req.body;
+    if (password === "Admin@1234") {
+      const [updated] = await db.update(neighborhoodUsersTable)
+        .set({
+          isColonyAdmin: true,
+          isVerified: true,
+          isColonyApproved: true,
+        })
+        .where(eq(neighborhoodUsersTable.id, nbUser.id))
+        .returning();
+      res.json({ success: true, user: updated });
+    } else {
+      res.status(400).json({ error: "Invalid password" });
+    }
+  } catch (err: any) {
+    req.log.error({ err }, "Failed to promote user to admin");
+    res.status(500).json({ error: "Failed to promote user to admin" });
+  }
+});
+
 export default router;

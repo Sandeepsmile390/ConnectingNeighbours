@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetMe, useUpdateUser, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useAuth } from "@workspace/replit-auth-web";
@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, User as UserIcon, Twitter, Facebook, Linkedin, Instagram, Github } from "lucide-react";
+import { LogOut, User as UserIcon, Twitter, Facebook, Linkedin, Instagram, Github, ShieldAlert } from "lucide-react";
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -34,6 +34,38 @@ export default function Profile() {
   
   const { data: user, isLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
   const updateUser = useUpdateUser();
+
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminError, setAdminError] = useState("");
+  const [isPromoting, setIsPromoting] = useState(false);
+
+  const handleBecomeAdmin = async () => {
+    if (!adminPassword) {
+      setAdminError("Please enter the admin password.");
+      return;
+    }
+    setIsPromoting(true);
+    setAdminError("");
+    try {
+      const res = await fetch("/api/auth/promote-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+      if (res.ok) {
+        toast({ title: "Success", description: "You have been promoted to colony administrator." });
+        queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+        setAdminPassword("");
+      } else {
+        const data = await res.json();
+        setAdminError(data.error || "Failed to verify password.");
+      }
+    } catch {
+      setAdminError("An error occurred during promotion.");
+    } finally {
+      setIsPromoting(false);
+    }
+  };
 
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
@@ -303,6 +335,44 @@ export default function Profile() {
           </div>
         </CardContent>
       </Card>
+
+      {!user.isColonyAdmin && (
+        <Card className="border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/10">
+          <CardHeader>
+            <CardTitle className="text-amber-600 dark:text-amber-500 flex items-center gap-2 text-lg font-bold">
+              <ShieldAlert className="h-5 w-5" />
+              Become Colony Admin
+            </CardTitle>
+            <CardDescription>
+              Enter the administrator password to elevate your account to a Colony Admin role.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4 max-w-md">
+              <Input
+                type="password"
+                placeholder="Enter Admin Password"
+                value={adminPassword}
+                onChange={(e) => {
+                  setAdminPassword(e.target.value);
+                  setAdminError("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleBecomeAdmin();
+                }}
+              />
+              <Button 
+                onClick={handleBecomeAdmin} 
+                disabled={isPromoting}
+                className="bg-amber-600 hover:bg-amber-700 text-white font-semibold min-w-[120px]"
+              >
+                {isPromoting ? "Promoting..." : "Verify & Enable"}
+              </Button>
+            </div>
+            {adminError && <p className="text-xs text-destructive font-medium">{adminError}</p>}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

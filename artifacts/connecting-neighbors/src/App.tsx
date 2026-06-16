@@ -413,6 +413,29 @@ function Router() {
 
 export default function App() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (isAuthenticated && user && !user.isColonyAdmin) {
+      const role = localStorage.getItem("intended_role");
+      if (role === "admin") {
+        localStorage.removeItem("intended_role");
+        fetch("/api/auth/promote-admin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: "Admin@1234" }),
+        })
+          .then((res) => {
+            if (res.ok) {
+              toast({ title: "Welcome, Admin!", description: "You have been promoted to colony administrator." });
+              queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
+            }
+          })
+          .catch((err) => console.error("Promotion failed:", err));
+      }
+    }
+  }, [isAuthenticated, user, queryClient, toast]);
 
   if (isLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center" />;
