@@ -2,8 +2,9 @@ import React from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Platform, RefreshControl, TextInput, ActivityIndicator, Alert,
-  Image,
+  Image, Modal,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useColors } from "@/hooks/useColors";
@@ -15,7 +16,10 @@ import {
   useListColonies,
   useCreateColony,
   useJoinColony,
-  getListColoniesQueryKey
+  getListColoniesQueryKey,
+  useListPendingMembers,
+  useVerifyColonyMember,
+  getListPendingMembersQueryKey
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,11 +47,15 @@ export default function HomeScreen() {
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = React.useState<"choose" | "admin" | "resident">("choose");
+  const [showAdminPasswordModal, setShowAdminPasswordModal] = React.useState(false);
+  const [adminPasswordInput, setAdminPasswordInput] = React.useState("");
+
+  const [lastSeenTime, setLastSeenTime] = React.useState<number>(Date.now());
+  const [showNotificationsModal, setShowNotificationsModal] = React.useState(false);
 
   React.useEffect(() => {
     (async () => {
       try {
-        const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
         const role = await AsyncStorage.getItem("intended_role");
         if (role === "admin" || role === "resident") {
           setActiveTab(role as any);
@@ -56,6 +64,65 @@ export default function HomeScreen() {
       } catch {}
     })();
   }, []);
+
+  React.useEffect(() => {
+    if (user?.colonyId) {
+      (async () => {
+        try {
+          const val = await AsyncStorage.getItem("last_seen_notifications");
+          if (val) {
+            setLastSeenTime(Number(val));
+          } else {
+            const now = Date.now();
+            await AsyncStorage.setItem("last_seen_notifications", String(now));
+            setLastSeenTime(now);
+          }
+        } catch {}
+      })();
+    }
+  }, [user?.colonyId]);
+
+  const handleOpenNotifications = async () => {
+    setShowNotificationsModal(true);
+    const now = Date.now();
+    try {
+      await AsyncStorage.setItem("last_seen_notifications", String(now));
+      setLastSeenTime(now);
+    } catch {}
+  };
+
+  const handleAdminChoicePress = () => {
+    if (Platform.OS === "ios") {
+      Alert.prompt(
+        "Admin Password Required",
+        "Please enter the password to register a colony:",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Verify",
+            onPress: (pwd?: string) => {
+              if (pwd === "Admin@1234") {
+                setActiveTab("admin");
+              } else {
+                Alert.alert("Error", "Incorrect admin password");
+              }
+            }
+          }
+        ],
+        "secure-text"
+      );
+    } else if (Platform.OS === "web") {
+      const pwd = window.prompt("Enter admin password:");
+      if (pwd === "Admin@1234") {
+        setActiveTab("admin");
+      } else if (pwd !== null) {
+        alert("Incorrect admin password");
+      }
+    } else {
+      setShowAdminPasswordModal(true);
+    }
+  };
+
   const [searchTerm, setSearchTerm] = React.useState("");
   
   // Create Form States
@@ -66,6 +133,21 @@ export default function HomeScreen() {
   const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useGetFeedStats();
   const { data: activity, isLoading: actLoading, refetch: refetchActivity } = useGetRecentActivity();
   const { data: alerts = [], refetch: refetchAlerts } = useListAlerts();
+
+  const { data: pendingMembers = [] } = useListPendingMembers({
+    query: {
+      enabled: !!user && user.isColonyAdmin === true,
+      refetchInterval: 15000,
+      queryKey: getListPendingMembersQueryKey()
+    }
+  });
+  const verifyMember = useVerifyColonyMember();
+
+  const pendingCount = user?.isColonyAdmin ? pendingMembers.length : 0;
+  const newActivityCount = activity 
+    ? activity.filter(a => new Date(a.createdAt).getTime() > lastSeenTime).length
+    : 0;
+  const unseenCount = pendingCount + newActivityCount;
 
   // Onboarding Hooks
   const { data: colonies, isLoading: coloniesLoading } = useListColonies({
@@ -153,7 +235,7 @@ export default function HomeScreen() {
             {/* Admin choice */}
             <TouchableOpacity 
               style={{ backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, padding: 20, borderRadius: 16 }}
-              onPress={() => setActiveTab("admin")}
+              onPress={handleAdminChoicePress}
               activeOpacity={0.8}
             >
               <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: colors.primary + "18", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
@@ -293,29 +375,100 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         )}
+
+        {/* Admin Onboarding Password Modal for Android */}
+        <Modal
+          visible={showAdminPasswordModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => {
+            setShowAdminPasswordModal(false);
+            setAdminPasswordInput("");
+          }}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.modalTitle, { color: colors.foreground }]}>Admin Verification</Text>
+              <Text style={[styles.modalDesc, { color: colors.mutedForeground }]}>
+                Please enter the administrator password to register a colony:
+              </Text>
+              <TextInput
+                style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+                secureTextEntry
+                autoFocus
+                value={adminPasswordInput}
+                onChangeText={setAdminPasswordInput}
+                placeholder="Password"
+                placeholderTextColor={colors.mutedForeground}
+              />
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalBtn, { borderColor: colors.border }]}
+                  onPress={() => {
+                    setShowAdminPasswordModal(false);
+                    setAdminPasswordInput("");
+                  }}
+                >
+                  <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold" }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalBtn, { backgroundColor: colors.primary, borderWidth: 0 }]}
+                  onPress={() => {
+                    if (adminPasswordInput === "Admin@1234") {
+                      setShowAdminPasswordModal(false);
+                      setAdminPasswordInput("");
+                      setActiveTab("admin");
+                    } else {
+                      Alert.alert("Error", "Incorrect admin password");
+                    }
+                  }}
+                >
+                  <Text style={{ color: colors.primaryForeground, fontFamily: "Inter_600SemiBold" }}>Verify</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     );
   }
 
   return (
-    <ScrollView
+    <>
+      <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={{ paddingTop: insets.top + webTopPad + 16, paddingBottom: 100 + webBotPad }}
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
     >
       <View style={styles.headerSection}>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={[styles.greeting, { color: colors.mutedForeground }]}>{greeting}</Text>
-          <Text style={[styles.userName, { color: colors.foreground }]}>
+          <Text style={[styles.userName, { color: colors.foreground }]} numberOfLines={1}>
             {user?.name ?? "Neighbor"}
           </Text>
         </View>
-        <Image
-          source={require("@/assets/images/icon.png")}
-          style={styles.logoMark}
-          resizeMode="cover"
-        />
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          {user?.colonyId && (
+            <TouchableOpacity 
+              style={[styles.bellBtn, { backgroundColor: colors.card, borderColor: colors.border }]} 
+              onPress={handleOpenNotifications}
+              activeOpacity={0.7}
+            >
+              <Feather name="bell" size={20} color={colors.foreground} />
+              {unseenCount > 0 && (
+                <View style={[styles.bellBadge, { backgroundColor: colors.destructive }]}>
+                  <Text style={styles.bellBadgeText}>{unseenCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
+          <Image
+            source={require("@/assets/images/icon.png")}
+            style={styles.logoMark}
+            resizeMode="cover"
+          />
+        </View>
       </View>
 
       {/* Critical Status Alerts / Messages */}
@@ -462,6 +615,88 @@ export default function HomeScreen() {
         )}
       </View>
     </ScrollView>
+
+      {/* Notifications Modal */}
+      <Modal
+        visible={showNotificationsModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowNotificationsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.notificationsContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[styles.notificationsHeader, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.notificationsTitle, { color: colors.foreground }]}>Notifications</Text>
+              <TouchableOpacity onPress={() => setShowNotificationsModal(false)}>
+                <Feather name="x" size={20} color={colors.foreground} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }} showsVerticalScrollIndicator={false}>
+              {/* Residency Requests for Admins */}
+              {user?.isColonyAdmin && (
+                <View style={{ gap: 8 }}>
+                  <Text style={{ fontSize: 11, fontWeight: "bold", color: colors.primary, letterSpacing: 0.5 }}>RESIDENCY REQUESTS</Text>
+                  {pendingMembers.length === 0 ? (
+                    <Text style={{ fontSize: 12, color: colors.mutedForeground, fontStyle: "italic" }}>No pending requests.</Text>
+                  ) : (
+                    pendingMembers.map((member: any) => (
+                      <View key={member.id} style={[styles.pendingItem, { borderColor: colors.border }]}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 14, fontWeight: "bold", color: colors.foreground }}>{member.name}</Text>
+                          <Text style={{ fontSize: 11, color: colors.mutedForeground }}>{member.apartment || "No unit specified"}</Text>
+                        </View>
+                        <TouchableOpacity
+                          style={{ backgroundColor: "#10B981", paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6 }}
+                          onPress={async () => {
+                            try {
+                              await verifyMember.mutateAsync({ data: { memberId: member.id } });
+                              Alert.alert("Success", "Resident approved.");
+                              queryClient.invalidateQueries({ queryKey: getListPendingMembersQueryKey() });
+                            } catch (err: any) {
+                              Alert.alert("Error", err.message || "Failed to approve member");
+                            }
+                          }}
+                        >
+                          <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "bold" }}>Approve</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))
+                  )}
+                </View>
+              )}
+
+              {/* Recent Activities */}
+              <View style={{ gap: 8 }}>
+                <Text style={{ fontSize: 11, fontWeight: "bold", color: colors.primary, letterSpacing: 0.5 }}>RECENT ACTIVITY</Text>
+                {!activity?.length ? (
+                  <Text style={{ fontSize: 12, color: colors.mutedForeground, fontStyle: "italic" }}>No recent activity.</Text>
+                ) : (
+                  activity.map((item) => {
+                    const conf = ACTIVITY_ICONS[item.type] ?? ACTIVITY_ICONS.post;
+                    return (
+                      <View key={item.id} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8 }}>
+                        <View style={[styles.actIcon, { backgroundColor: conf.color + "18", width: 30, height: 30, borderRadius: 15 }]}>
+                          <Feather name={conf.icon} size={14} color={conf.color} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 12, color: colors.foreground }}>
+                            <Text style={{ fontWeight: "bold" }}>{item.actorName}</Text> {item.type === "post" ? "posted" : item.type === "listing" ? "listed" : item.type === "event" ? "created event" : item.type === "alert" ? "reported" : "offered"}: {item.title}
+                          </Text>
+                          <Text style={{ fontSize: 10, color: colors.mutedForeground, marginTop: 2 }}>
+                            {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  })
+                )}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -499,4 +734,18 @@ const styles = StyleSheet.create({
   actionBtn: { flex: 1, paddingVertical: 12, borderRadius: 16, borderWidth: 1, alignItems: "center", gap: 8 },
   actionIconBg: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   actionLabel: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+  bellBtn: { width: 40, height: 40, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center", position: "relative" },
+  bellBadge: { position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
+  bellBadgeText: { color: "#ffffff", fontSize: 9, fontWeight: "bold" },
+  notificationsContent: { width: "90%", height: "80%", borderRadius: 20, borderWidth: 1, overflow: "hidden" },
+  notificationsHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 16, borderBottomWidth: 1 },
+  notificationsTitle: { fontSize: 18, fontWeight: "bold" },
+  pendingItem: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 10, borderWidth: 1, borderRadius: 10, marginVertical: 4 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  modalContent: { width: "80%", padding: 20, borderRadius: 16, borderWidth: 1, gap: 14 },
+  modalTitle: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  modalDesc: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  modalInput: { borderWidth: 1, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14, fontSize: 14, fontFamily: "Inter_400Regular" },
+  modalButtons: { flexDirection: "row", gap: 10, justifyContent: "flex-end", marginTop: 6 },
+  modalBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10, borderWidth: 1, alignItems: "center", minWidth: 80 },
 });

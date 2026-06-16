@@ -23,7 +23,7 @@ import {
   Check,
   UserCheck
 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { 
   useGetRecentActivity, 
@@ -65,15 +65,31 @@ function ThemeToggle() {
   );
 }
 
-function ColonyAdminNotificationButton({ user }: { user: any }) {
+function NotificationButton({ user }: { user: any }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+  const [lastSeenTime, setLastSeenTime] = useState<number>(() => {
+    try {
+      const val = localStorage.getItem("last_seen_notifications");
+      return val ? Number(val) : Date.now();
+    } catch {
+      return Date.now();
+    }
+  });
+
   const { data: pendingMembers } = useListPendingMembers({
     query: {
       enabled: !!user && user.isColonyAdmin === true,
       refetchInterval: 15000,
       queryKey: getListPendingMembersQueryKey(),
+    }
+  });
+
+  const { data: recentActivity } = useGetRecentActivity({
+    query: {
+      enabled: !!user,
+      refetchInterval: 10000,
+      queryKey: getGetRecentActivityQueryKey(),
     }
   });
 
@@ -100,16 +116,28 @@ function ColonyAdminNotificationButton({ user }: { user: any }) {
     });
   };
 
-  const count = pendingMembers?.length || 0;
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      const now = Date.now();
+      localStorage.setItem("last_seen_notifications", String(now));
+      setLastSeenTime(now);
+    }
+  };
+
+  const pendingCount = user?.isColonyAdmin ? (pendingMembers?.length || 0) : 0;
+  const unreadActivityCount = recentActivity
+    ? recentActivity.filter((a: any) => new Date(a.createdAt).getTime() > lastSeenTime).length
+    : 0;
+  const count = pendingCount + unreadActivityCount;
 
   return (
-    <Popover>
+    <Popover onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button 
           variant="ghost" 
           size="icon" 
           className="relative text-muted-foreground hover:text-foreground h-9 w-9 rounded-md transition-colors"
-          aria-label="Pending residency requests notifications"
+          aria-label="Notifications"
         >
           <Bell className="h-5 w-5" />
           {count > 0 && (
@@ -120,42 +148,78 @@ function ColonyAdminNotificationButton({ user }: { user: any }) {
           <span className="sr-only">Notifications</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 border border-muted/50 shadow-lg" align="end">
+      <PopoverContent className="w-80 p-0 border border-muted/50 shadow-lg flex flex-col max-h-[380px]" align="end">
         <div className="p-4 border-b bg-card">
-          <h4 className="font-semibold text-sm">Residency Requests</h4>
+          <h4 className="font-semibold text-sm">Notifications</h4>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {count === 0 ? "No pending requests to approve" : `You have ${count} pending request${count === 1 ? "" : "s"}`}
+            {count === 0 ? "No new notifications" : `You have ${count} new notification${count === 1 ? "" : "s"}`}
           </p>
         </div>
-        <div className="max-h-64 overflow-y-auto bg-background">
-          {count === 0 ? (
-            <div className="p-6 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-2">
-              <UserCheck className="h-8 w-8 text-muted-foreground/35" />
-              <span>All residents verified!</span>
-            </div>
-          ) : (
-            <div className="divide-y divide-muted/50">
-              {pendingMembers?.map((member: any) => (
-                <div key={member.id} className="p-3 flex items-center justify-between gap-3 hover:bg-muted/20 transition-colors">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{member.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {member.apartment ? `Unit ${member.apartment}` : "No apartment specified"}
-                    </p>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    className="h-8 gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shrink-0"
-                    onClick={() => handleApprove(member.id)}
-                    disabled={verifyMember.isPending}
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                    Approve
-                  </Button>
+        <div className="overflow-y-auto divide-y divide-muted/50 bg-background flex-1">
+          {/* Residency Requests (Admins only) */}
+          {user?.isColonyAdmin && (
+            <div className="bg-card/50">
+              <div className="px-3 py-1.5 text-[10px] font-bold text-primary tracking-wider uppercase bg-muted/40 border-b">
+                Residency Requests
+              </div>
+              {pendingMembers?.length === 0 ? (
+                <div className="p-4 text-center text-xs text-muted-foreground">
+                  No pending verification requests.
                 </div>
-              ))}
+              ) : (
+                pendingMembers?.map((member: any) => (
+                  <div key={member.id} className="p-3 flex items-center justify-between gap-3 hover:bg-muted/10 transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold truncate">{member.name}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        {member.apartment ? `Unit ${member.apartment}` : "No unit specified"}
+                      </p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      className="h-7 text-xs gap-1 bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 font-semibold"
+                      onClick={() => handleApprove(member.id)}
+                      disabled={verifyMember.isPending}
+                    >
+                      <Check className="h-3 w-3" />
+                      Approve
+                    </Button>
+                  </div>
+                ))
+              )}
             </div>
           )}
+
+          {/* Recent Activity */}
+          <div>
+            <div className="px-3 py-1.5 text-[10px] font-bold text-primary tracking-wider uppercase bg-muted/40 border-b">
+              Recent Activity
+            </div>
+            {!recentActivity || recentActivity.length === 0 ? (
+              <div className="p-6 text-center text-xs text-muted-foreground">
+                No recent community activity.
+              </div>
+            ) : (
+              recentActivity.slice(0, 10).map((activity: any) => {
+                const isUnread = new Date(activity.createdAt).getTime() > lastSeenTime;
+                return (
+                  <div 
+                    key={activity.id} 
+                    className={`p-3 text-xs hover:bg-muted/10 transition-colors ${isUnread ? 'bg-primary/5 font-medium' : ''}`}
+                  >
+                    <p className="text-foreground">
+                      <span className="font-bold text-primary">{activity.actorName}</span>{" "}
+                      {activity.type === "post" ? "posted" : activity.type === "listing" ? "listed" : activity.type === "event" ? "created event" : activity.type === "alert" ? "reported" : "offered"}:{" "}
+                      {activity.title}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {new Date(activity.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       </PopoverContent>
     </Popover>
@@ -371,7 +435,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Desktop Header */}
         <header className="hidden md:flex border-b bg-card h-16 items-center justify-end px-8 sticky top-0 z-10 gap-3">
-          {user?.isColonyAdmin && <ColonyAdminNotificationButton user={user} />}
+          {user && <NotificationButton user={user} />}
           <ThemeToggle />
         </header>
 
@@ -382,7 +446,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <span className="font-semibold">Neighbors</span>
           </div>
           <div className="flex items-center gap-2">
-            {user?.isColonyAdmin && <ColonyAdminNotificationButton user={user} />}
+            {user && <NotificationButton user={user} />}
             <ThemeToggle />
             <Sheet>
               <SheetTrigger asChild>

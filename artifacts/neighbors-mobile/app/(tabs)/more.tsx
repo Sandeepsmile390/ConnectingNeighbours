@@ -38,6 +38,7 @@ export default function MoreScreen() {
   const { user, isAuthenticated, login, loginDev, logout } = useAuth();
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showGoogleAdminPasswordModal, setShowGoogleAdminPasswordModal] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
 
   // Fetch count states
@@ -110,6 +111,48 @@ export default function MoreScreen() {
     }
   };
 
+  const handleGoogleAdminLogin = () => {
+    if (Platform.OS === "ios") {
+      Alert.prompt(
+        "Admin Password Required",
+        "Please enter the password to log in as administrator:",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Login",
+            onPress: async (pwd?: string) => {
+              if (pwd === "Admin@1234") {
+                try {
+                  const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
+                  await AsyncStorage.setItem("intended_role", "admin");
+                } catch {}
+                login();
+              } else {
+                Alert.alert("Error", "Incorrect admin password");
+              }
+            }
+          }
+        ],
+        "secure-text"
+      );
+    } else if (Platform.OS === "web") {
+      const pwd = window.prompt("Enter admin password:");
+      if (pwd === "Admin@1234") {
+        (async () => {
+          try {
+            const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
+            await AsyncStorage.setItem("intended_role", "admin");
+          } catch {}
+          login();
+        })();
+      } else if (pwd !== null) {
+        alert("Incorrect admin password");
+      }
+    } else {
+      setShowGoogleAdminPasswordModal(true);
+    }
+  };
+
   const getBadgeCount = (route: string) => {
     if (route === "/chat") {
       return conversations?.reduce((acc: number, c: any) => acc + (c.unreadCount || 0), 0) || 0;
@@ -177,12 +220,7 @@ export default function MoreScreen() {
             <View style={{ width: "100%", gap: 10, marginTop: 12 }}>
               <TouchableOpacity
                 style={[styles.loginBtn, { backgroundColor: colors.primary, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6 }]}
-                onPress={async () => {
-                  try {
-                    await AsyncStorage.setItem("intended_role", "admin");
-                  } catch {}
-                  login();
-                }}
+                onPress={handleGoogleAdminLogin}
                 activeOpacity={0.85}
               >
                 <Feather name="shield" size={16} color={colors.primaryForeground} />
@@ -323,6 +361,64 @@ export default function MoreScreen() {
                     loginDev("admin", pwd).catch(() => {
                       Alert.alert("Error", "Admin login failed.");
                     });
+                  } else {
+                    Alert.alert("Error", "Incorrect admin password");
+                  }
+                }}
+              >
+                <Text style={{ color: colors.primaryForeground, fontFamily: "Inter_600SemiBold" }}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Google Admin Password Modal for Android */}
+      <Modal
+        visible={showGoogleAdminPasswordModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          setShowGoogleAdminPasswordModal(false);
+          setPasswordInput("");
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.modalTitle, { color: colors.foreground }]}>Admin Verification</Text>
+            <Text style={[styles.modalDesc, { color: colors.mutedForeground }]}>
+              Please enter the administrator password:
+            </Text>
+            <TextInput
+              style={[styles.modalInput, { color: colors.foreground, borderColor: colors.border, backgroundColor: colors.background }]}
+              secureTextEntry
+              autoFocus
+              value={passwordInput}
+              onChangeText={setPasswordInput}
+              placeholder="Password"
+              placeholderTextColor={colors.mutedForeground}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalBtn, { borderColor: colors.border }]}
+                onPress={() => {
+                  setShowGoogleAdminPasswordModal(false);
+                  setPasswordInput("");
+                }}
+              >
+                <Text style={{ color: colors.foreground, fontFamily: "Inter_600SemiBold" }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, { backgroundColor: colors.primary, borderWidth: 0 }]}
+                onPress={async () => {
+                  if (passwordInput === "Admin@1234") {
+                    setShowGoogleAdminPasswordModal(false);
+                    setPasswordInput("");
+                    try {
+                      const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
+                      await AsyncStorage.setItem("intended_role", "admin");
+                    } catch {}
+                    login();
                   } else {
                     Alert.alert("Error", "Incorrect admin password");
                   }

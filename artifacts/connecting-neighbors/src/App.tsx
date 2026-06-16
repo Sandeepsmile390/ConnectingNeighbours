@@ -43,6 +43,9 @@ function ColonyOnboarding() {
   const { toast } = useToast();
   
   const [activeTab, setActiveTab] = useState<"choose" | "admin" | "resident">("choose");
+  const [showAdminPasswordPrompt, setShowAdminPasswordPrompt] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminError, setAdminError] = useState("");
 
   useEffect(() => {
     const role = localStorage.getItem("intended_role");
@@ -51,6 +54,17 @@ function ColonyOnboarding() {
       localStorage.removeItem("intended_role");
     }
   }, []);
+
+  const handleVerifyOnboardingAdmin = () => {
+    if (adminPassword === "Admin@1234") {
+      setShowAdminPasswordPrompt(false);
+      setAdminPassword("");
+      setAdminError("");
+      setActiveTab("admin");
+    } else {
+      setAdminError("Incorrect password.");
+    }
+  };
   const [searchTerm, setSearchTerm] = useState("");
   
   // Create Form States
@@ -138,7 +152,7 @@ function ColonyOnboarding() {
                 {/* Admin Card */}
                 <Card 
                   className="group cursor-pointer hover:border-primary/50 transition-all duration-300 hover:shadow-md bg-card border flex flex-col justify-between"
-                  onClick={() => setActiveTab("admin")}
+                  onClick={() => setShowAdminPasswordPrompt(true)}
                 >
                   <CardHeader className="p-6 text-left">
                     <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -282,6 +296,55 @@ function ColonyOnboarding() {
       <div className="text-center text-xs text-muted-foreground max-w-4xl w-full mx-auto mt-8 border-t pt-4">
         Connecting Neighbors · Build a stronger community
       </div>
+
+      {showAdminPasswordPrompt && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border rounded-2xl p-6 shadow-lg max-w-sm w-full space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold flex items-center gap-2 text-amber-500">
+                <Building className="h-5 w-5" />
+                Admin Password Required
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Please enter the colony administrator password to proceed.
+              </p>
+            </div>
+            <Input 
+              type="password" 
+              placeholder="Enter admin password" 
+              value={adminPassword}
+              onChange={(e) => {
+                setAdminPassword(e.target.value);
+                setAdminError("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleVerifyOnboardingAdmin();
+              }}
+              autoFocus
+            />
+            {adminError && <p className="text-xs text-destructive font-medium">{adminError}</p>}
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => {
+                  setShowAdminPasswordPrompt(false);
+                  setAdminPassword("");
+                  setAdminError("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="flex-1 font-semibold"
+                onClick={handleVerifyOnboardingAdmin}
+              >
+                Verify
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
