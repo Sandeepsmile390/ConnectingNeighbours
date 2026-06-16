@@ -6,7 +6,7 @@ const router = Router();
 router.get("/api/app-version", (_req, res) => {
   res.json({
     latestVersion: "1.0.1",
-    apkUrl: "https://expo.dev/artifacts/eas/EdkElQl_-Cy6-aZ8SP5XBncJVzIsdnXVd9VpJ4DFCYs.apk",
+    apkUrl: "https://drive.google.com/uc?export=download&id=173AOmn1l7zOF3WDDocBmKDAPu9kAgzkQ",
     releaseNotes: "New global notifications bell, dynamic sound chimes, and verified residency badges.",
   });
 });
