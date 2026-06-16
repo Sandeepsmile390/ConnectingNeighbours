@@ -137,7 +137,8 @@ export default function Login() {
             </div>
             <a 
               href={apkUrl} 
-              download 
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 transition-colors shadow-sm cursor-pointer whitespace-nowrap"
             >
               Download Now

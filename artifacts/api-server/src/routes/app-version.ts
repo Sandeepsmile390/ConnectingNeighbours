@@ -6,7 +6,7 @@ const router = Router();
 router.get("/api/app-version", (_req, res) => {
   res.json({
     latestVersion: "1.0.1",
-    apkUrl: "https://drive.google.com/uc?export=download&id=173AOmn1l7zOF3WDDocBmKDAPu9kAgzkQ",
+    apkUrl: "https://drive.google.com/file/d/173AOmn1l7zOF3WDDocBmKDAPu9kAgzkQ/view?usp=drivesdk",
     releaseNotes: "New global notifications bell, dynamic sound chimes, and verified residency badges.",
   });
 });
